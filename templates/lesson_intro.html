@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intro: Week {{ lesson.week }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center">
+
+<div class="max-w-3xl w-full p-8">
+    <div class="text-center mb-12">
+        <p class="text-indigo-400 font-bold tracking-widest uppercase mb-2">{{ period.name }} | Week {{ lesson.week }}</p>
+        <h1 class="text-5xl font-extrabold text-white mb-6 leading-tight">{{ lesson.topic }}</h1>
+        <div class="w-24 h-1 bg-teal-500 mx-auto mb-8"></div>
+        
+        <p class="text-xl text-slate-300 leading-relaxed mb-10">
+            {{ lesson.intro_text }}
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
+            <div>
+                <h3 class="text-teal-400 font-bold mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    Key Topics
+                </h3>
+                <ul class="list-disc list-inside text-slate-400 space-y-1 text-sm">
+                    {% for detail in lesson.details %}
+                    <li>{{ detail }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div>
+                 <h3 class="text-teal-400 font-bold mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    Activities
+                </h3>
+                <ul class="list-disc list-inside text-slate-400 space-y-1 text-sm">
+                    {% for activity in lesson.activities %}
+                    <li>{{ activity }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{{ url_for('weekly_lesson', week_number=lesson.week) }}" class="inline-block bg-indigo-600 hover:bg-indigo-500 text-white text-lg font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-indigo-500/50 transition-all transform hover:-translate-y-1">
+            Start Lesson
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

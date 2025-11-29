@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ data.course_info.title }} Syllabus</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- LINK TO EXTERNAL CSS FILE -->
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+
+<!-- Header & Navigation -->
+<header class="bg-indigo-900/50 backdrop-blur-sm py-12 shadow-xl border-b border-indigo-700/50">
+    <div class="container mx-auto px-6 max-w-6xl">
+        <nav class="flex justify-between items-center mb-8">
+            <div class="flex items-center space-x-3">
+                <div class="h-10 w-1 bg-teal-400 rounded-full"></div>
+                <a href="/" class="text-2xl font-extrabold text-white tracking-tight hover:text-indigo-300 transition-colors">
+                    {{ data.course_info.code }}
+                </a>
+            </div>
+            <a href="/instructor" class="text-sm font-bold text-slate-300 bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700 hover:bg-indigo-600 hover:border-indigo-500 transition-all">
+                Instructor: {{ instructor.name.split(' ')[0] }}
+            </a>
+        </nav>
+        
+        <div class="grid md:grid-cols-3 gap-8 items-end">
+            <div class="md:col-span-2">
+                <h1 class="text-5xl font-black text-white mb-4 leading-tight">{{ data.course_info.title }}</h1>
+                <p class="text-lg text-slate-400 max-w-2xl leading-relaxed">{{ data.course_info.description }}</p>
+            </div>
+            <div class="flex md:justify-end gap-3">
+                <div class="text-center px-4 py-2 bg-slate-800 rounded-lg border border-slate-700">
+                    <span class="block text-2xl font-bold text-teal-400">{{ data.course_info.units }}</span>
+                    <span class="text-xs text-slate-500 uppercase font-bold">Units</span>
+                </div>
+                <div class="text-center px-4 py-2 bg-slate-800 rounded-lg border border-slate-700">
+                    <span class="block text-2xl font-bold text-indigo-400">18</span>
+                    <span class="text-xs text-slate-500 uppercase font-bold">Weeks</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-6 py-16 max-w-6xl space-y-20">
+
+    <!-- SECTION 1: COURSE INTRODUCTION (From PPT 1) -->
+    <section class="space-y-12">
+        <div class="flex items-center gap-4">
+            <div class="h-px bg-slate-700 flex-grow"></div>
+            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest">Course Overview</h2>
+            <div class="h-px bg-slate-700 flex-grow"></div>
+        </div>
+
+        <!-- Definition & Categories -->
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                <h3 class="text-2xl font-bold text-white mb-4">What is Discrete Structures?</h3>
+                <p class="text-slate-300 leading-relaxed mb-6">
+                    It is a branch of mathematics involving <strong>discrete elements</strong> that uses algebra and arithmetic. It is increasingly being applied in the practical fields of mathematics and computer science. It is a very good tool for improving reasoning and problem-solving capabilities.
+                </p>
+                <div class="bg-indigo-900/30 p-4 rounded-lg border-l-4 border-indigo-500">
+                    <p class="text-sm text-indigo-200 italic">"Discrete data is a count that involves integers. You can count whole individuals. You can’t count 1.5 kids."</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-slate-800 p-10 rounded-xl border border-slate-700 flex gap-4">
+                    <div class="bg-teal-500/10 p-3 rounded-lg h-fit">
+                        <svg class="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-white">Continuous Mathematics</h4>
+                        <p class="text-sm text-slate-400 mt-1">Based on the continuous number line (Real numbers). Infinite values between any two points. Example: Smooth curves, height, weight, time.</p>
+                    </div>
+                </div>
+                <div class="bg-slate-800 p-10 rounded-xl border border-slate-700 flex gap-4">
+                    <div class="bg-purple-500/10 p-3 rounded-lg h-fit">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-white">Discrete Mathematics</h4>
+                        <p class="text-sm text-slate-400 mt-1">Involves distinct, separated values. Countable points. Example: Integers, binary code, lists, logic.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real World Applications -->
+        <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-8 rounded-2xl border border-slate-700 relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
+            <h3 class="text-xl font-bold text-white mb-6 relative z-10">Everyday Applications</h3>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+                <div class="space-y-2">
+                    <p class="font-bold text-indigo-400">Computers</p>
+                    <p class="text-xs text-slate-400">Software and files stored as strings of 1s and 0s (Binary).</p>
+                </div>
+                <div class="space-y-2">
+                    <p class="font-bold text-indigo-400">Networks</p>
+                    <p class="text-xs text-slate-400">Internet routing and social media connections (Graph Theory).</p>
+                </div>
+                <div class="space-y-2">
+                    <p class="font-bold text-indigo-400">Google Maps</p>
+                    <p class="text-xs text-slate-400">Determining fastest routes using pathfinding algorithms.</p>
+                </div>
+                <div class="space-y-2">
+                    <p class="font-bold text-indigo-400">Cryptography</p>
+                    <p class="text-xs text-slate-400">Secure shopping and data protection.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: COURSE SCHEDULE -->
+    <section class="space-y-12">
+        <div class="flex items-center gap-4">
+            <div class="h-px bg-slate-700 flex-grow"></div>
+            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest">Class Schedule</h2>
+            <div class="h-px bg-slate-700 flex-grow"></div>
+        </div>
+
+        {% for period in data.periods %}
+        <div class="space-y-6">
+            <!-- Period Heading -->
+            <div class="flex items-baseline justify-between border-b border-slate-800 pb-4">
+                <h3 class="text-3xl font-bold text-white">
+                    {{ period.name }}
+                    <span class="ml-3 text-lg font-normal text-slate-500">Weeks {{ period.weeks }}</span>
+                </h3>
+                <span class="text-sm font-medium text-teal-400 bg-teal-400/10 px-3 py-1 rounded-full">{{ period.theme }}</span>
+            </div>
+            
+            <!-- Weekly Cards Grid -->
+            <div class="grid gap-4">
+                {% for item in period.schedule %}
+                <a href="{{ url_for('lesson_intro', week_number=item.week) }}" class="block group">
+                    <div class="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-indigo-500 rounded-xl p-5 transition-all duration-300 flex items-start gap-6">
+                        
+                        <!-- Week Badge -->
+                        <div class="flex flex-col items-center justify-center w-16 h-16 bg-slate-900 rounded-lg border border-slate-700 group-hover:border-indigo-500/50 transition-colors shrink-0">
+                            <span class="text-xs text-slate-500 font-bold uppercase">Week</span>
+                            <span class="text-2xl font-bold text-white">{{ item.week }}</span>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="flex-grow min-w-0">
+                            <div class="flex justify-between items-start">
+                                <h4 class="text-lg font-bold text-white group-hover:text-teal-400 transition-colors pr-4">{{ item.topic }}</h4>
+                                <svg class="w-5 h-5 text-slate-600 group-hover:text-teal-400 transform group-hover:translate-x-1 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </div>
+                            
+                            <!-- Details (Formatted as inline tags) -->
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                {% for detail in item.details %}
+                                <span class="text-xs font-medium text-slate-400 bg-slate-900/50 px-2 py-1 rounded border border-slate-700/50">
+                                    {{ detail }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="bg-slate-900 border-t border-slate-800 py-12 mt-24">
+    <div class="container mx-auto px-6 text-center">
+        <h4 class="text-white font-bold text-lg mb-2">{{ data.course_info.code }}</h4>
+        <p class="text-slate-500 text-sm">{{ data.course_info.title }}</p>
+        <div class="mt-8 text-xs text-slate-600">
+            <p>&copy; 2025 Academic Year. All rights reserved.</p>
+            <p class="mt-1">Instructor: {{ instructor.name }}</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instructor: {{ instructor.name }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- LINK TO EXTERNAL CSS FILE -->
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+<!-- Header & Navigation -->
+<header class="bg-indigo-900/50 backdrop-blur-sm py-8 shadow-xl border-b border-indigo-700/50">
+    <div class="container mx-auto px-6 max-w-4xl">
+        <nav class="flex justify-between items-center">
+            <a href="/" class="text-xl font-extrabold text-indigo-400 hover:text-indigo-300 transition-colors">← Back to Syllabus</a>
+        </nav>
+    </div>
+</header>
+
+<!-- Main Content - Instructor Bio -->
+<main class="container mx-auto px-6 py-16 max-w-4xl">
+    <div class="bg-slate-800/70 p-10 rounded-xl shadow-lg border border-indigo-600/50">
+        <div class="flex flex-col items-center text-center">
+            
+            <!-- Placeholder for Image (Minimalist Icon) -->
+            <div class="h-24 w-24 bg-teal-400 text-slate-900 rounded-full flex items-center justify-center text-4xl font-extrabold mb-6 shadow-md">
+                PDT
+            </div>
+            
+            <h1 class="text-4xl font-bold text-white mb-2">{{ instructor.name }}</h1>
+            <h2 class="text-xl font-medium text-indigo-400 mb-6">{{ instructor.title }}</h2>
+            
+            <p class="text-slate-300 italic max-w-xl mb-8 border-t border-b border-slate-700 py-4">
+                "{{ instructor.quote }}"
+            </p>
+
+            <div class="space-y-4 text-left w-full max-w-md">
+                <div class="flex items-center space-x-3">
+                    <span class="text-teal-400 font-bold w-32 shrink-0">Expertise:</span>
+                    <span class="text-slate-300">{{ instructor.focus }}</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="text-teal-400 font-bold w-32 shrink-0">Email:</span>
+                    <a href="mailto:{{ instructor.email }}" class="text-indigo-400 hover:text-teal-400 transition-colors">{{ instructor.email }}</a>
+                </div>
+                <div class="pt-4 text-center border-t border-slate-700 mt-4">
+                    <p class="text-sm text-slate-400">
+                        Instructor Trambulo's goal is to equip students with the mathematical and logical tools essential for advanced computer science and problem-solving.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<!-- Footer -->
+<footer class="bg-slate-900 border-t border-slate-700 text-slate-400 py-8 mt-16">
+    <div class="container mx-auto px-6 text-center text-sm">
+        <p>© 2025 Course Page. All rights reserved.</p>
+    </div>
+</footer>
+
+
+</body>
+</html>

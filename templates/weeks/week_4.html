@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week {{ lesson.week }} - {{ lesson.topic }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<!-- MathJax -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+<header class="bg-indigo-900/50 backdrop-blur-sm py-8 shadow-xl border-b border-indigo-700/50">
+    <div class="container mx-auto px-6 max-w-6xl flex justify-between items-center">
+        <a href="/" class="text-xl font-extrabold text-indigo-400 hover:text-indigo-300 transition-colors">← Back to Syllabus</a>
+        <div class="text-right">
+            <h1 class="text-2xl font-bold text-white">{{ lesson.topic }}</h1>
+            <p class="text-sm text-slate-400">Week {{ lesson.week }} | {{ period.name }}</p>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-6 py-10 max-w-6xl flex-grow">
+    
+    <section class="mb-12">
+        <h2 class="text-3xl font-bold text-teal-400 mb-6 border-b border-slate-700 pb-2">1. Fundamental Counting Principles</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                <h3 class="text-xl font-bold text-white mb-3">Product Rule (Multiplication)</h3>
+                <p class="text-slate-300 mb-4">If a task can be broken into a sequence of independent choices:</p>
+                <div class="bg-slate-900 p-4 rounded text-center">
+                    <p class="text-indigo-300 font-mono">Total Ways = $n_1 \times n_2 \times ... \times n_k$</p>
+                </div>
+                <p class="text-sm text-slate-400 mt-3">Example: Outfits. 3 shirts x 2 pants = 6 combinations.</p>
+            </div>
+            
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                <h3 class="text-xl font-bold text-white mb-3">Sum Rule (Addition)</h3>
+                <p class="text-slate-300 mb-4">If a task can be done in one of several mutually exclusive ways:</p>
+                <div class="bg-slate-900 p-4 rounded text-center">
+                    <p class="text-indigo-300 font-mono">Total Ways = $n_1 + n_2 + ... + n_k$</p>
+                </div>
+                <p class="text-sm text-slate-400 mt-3">Example: Picking a fruit. 3 apples OR 2 oranges = 5 choices.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-12">
+        <h2 class="text-3xl font-bold text-teal-400 mb-6 border-b border-slate-700 pb-2">2. Factorials ($n!$)</h2>
+        <div class="bg-slate-800 p-8 rounded-xl border border-indigo-600/50">
+            <p class="text-lg text-slate-300 mb-4">The number of ways to arrange $n$ distinct items.</p>
+            <div class="flex items-center justify-center space-x-8">
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-white">5!</p>
+                    <p class="text-sm text-slate-400">5 x 4 x 3 x 2 x 1</p>
+                    <p class="text-xl text-teal-400 mt-2">= 120</p>
+                </div>
+                <div class="text-xl text-slate-500">vs</div>
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-white">0!</p>
+                    <p class="text-sm text-slate-400">(By definition)</p>
+                    <p class="text-xl text-teal-400 mt-2">= 1</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources -->
+    <section>
+        <h2 class="text-3xl font-bold text-teal-400 mb-6 border-b border-slate-700 pb-2">3. Lecture Materials</h2>
+        <div class="flex items-center space-x-4">
+            {% if lesson.pdf_link %}
+            <a href="{{ url_for('uploaded_file', filename=lesson.pdf_link) }}" target="_blank" class="flex items-center space-x-3 bg-slate-800 hover:bg-slate-700 p-4 rounded-xl border border-slate-600 transition-all group">
+                <div class="bg-red-500/20 p-3 rounded-lg group-hover:bg-red-500/30 transition-colors">
+                    <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <p class="text-white font-semibold">Download Lecture Slides</p>
+                    <p class="text-sm text-slate-400">{{ lesson.pdf_link }}</p>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+    </section>
+
+</main>
+</body>
+</html>

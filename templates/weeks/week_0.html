@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week {{ lesson.week }} - {{ lesson.topic }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script>
+    // --- Modal Logic ---
+    function showModal(title, message, isCorrect) {
+        const modal = document.getElementById('feedback-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalIcon = document.getElementById('modal-icon');
+
+        modalTitle.textContent = title;
+        modalMessage.innerHTML = message; 
+
+        modalTitle.className = "text-2xl font-bold text-center mb-2";
+        modalIcon.className = "text-center mb-6";
+
+        if (isCorrect === true) {
+            modalTitle.classList.add("text-green-400");
+            modalIcon.innerHTML = '<svg class="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+        } else if (isCorrect === false) {
+            modalTitle.classList.add("text-red-400");
+            modalIcon.innerHTML = '<svg class="w-16 h-16 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+        } else {
+            modalTitle.classList.add("text-indigo-400");
+            modalIcon.innerHTML = '<svg class="w-16 h-16 text-indigo-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+        }
+        modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('feedback-modal').classList.add('hidden');
+    }
+
+    function checkData(type, explanation) {
+        if(type === 'discrete') {
+            showModal("Discrete Data", `<strong>Correct!</strong><br>${explanation}<br>It is countable and distinct.`, true);
+        } else {
+            showModal("Continuous Data", `<strong>Correct!</strong><br>${explanation}<br>It is measurable and can be infinitely divided.`, true);
+        }
+    }
+</script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+<header class="bg-indigo-900/50 backdrop-blur-sm py-8 shadow-xl border-b border-indigo-700/50">
+    <div class="container mx-auto px-6 max-w-6xl flex justify-between items-center">
+        <a href="/" class="text-xl font-extrabold text-indigo-400 hover:text-indigo-300 transition-colors">← Syllabus</a>
+        <div class="text-right">
+            <h1 class="text-2xl font-bold text-white">{{ lesson.topic }}</h1>
+            <p class="text-sm text-slate-400">Week {{ lesson.week }}</p>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-6 py-10 max-w-5xl flex-grow">
+    
+    <!-- SECTION 1: DEFINITION -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">1. What is Discrete Mathematics?</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <p class="text-lg text-slate-300 mb-6 leading-relaxed">
+                It is a branch of mathematics involving <strong>discrete elements</strong> that uses algebra and arithmetic. It is increasingly being applied in the practical fields of mathematics and computer science. It is a very good tool for improving reasoning and problem-solving capabilities.
+            </p>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Continuous -->
+                <div class="bg-gradient-to-br from-blue-900/40 to-slate-800 p-6 rounded-xl border border-blue-500/30">
+                    <h3 class="text-xl font-bold text-blue-400 mb-3">1. Continuous Mathematics</h3>
+                    <ul class="list-disc list-inside text-slate-300 space-y-2 text-sm">
+                        <li>Based upon continuous number line or real numbers.</li>
+                        <li>Characterized by the fact that between any two numbers, there are almost always an infinite set of numbers.</li>
+                        <li><strong>Example:</strong> A function plotted as a smooth curve without breaks.</li>
+                        <li><strong>Data:</strong> Height, Weight, Time, Temperature.</li>
+                    </ul>
+                                    </div>
+                
+                <!-- Discrete -->
+                <div class="bg-gradient-to-br from-teal-900/40 to-slate-800 p-6 rounded-xl border border-teal-500/30">
+                    <h3 class="text-xl font-bold text-teal-400 mb-3">2. Discrete Mathematics</h3>
+                    <ul class="list-disc list-inside text-slate-300 space-y-2 text-sm">
+                        <li>Involves <strong>distinct values</strong>.</li>
+                        <li>Between any two points, there are a countable number of points.</li>
+                        <li><strong>Example:</strong> A list of ordered pairs, integers, binary code (0s and 1s).</li>
+                        <li><strong>Data:</strong> Number of students, Days of the week, Files on a PC.</li>
+                    </ul>
+                                    </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: DATA CHARACTERISTICS -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">2. Discrete vs. Continuous Data</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-900 text-indigo-300 uppercase font-bold">
+                        <tr>
+                            <th class="p-4 w-1/2">Discrete Data</th>
+                            <th class="p-4 w-1/2">Continuous Data</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700">
+                        <tr>
+                            <td class="p-4">You can <strong>count</strong> the data (whole numbers).</td>
+                            <td class="p-4">You can <strong>measure</strong> the data (scales, decimals).</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4">Cannot be divided into smaller pieces meaningfully (e.g., 1.5 kids).</td>
+                            <td class="p-4">Can be subdivided infinitely (e.g., 1.55 meters).</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4">Limited number of possible values.</td>
+                            <td class="p-4">Infinite number of possible values within an interval.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4">Displayed by <strong>Bar Graphs</strong>.</td>
+                            <td class="p-4">Displayed by <strong>Histograms</strong> or Curves.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: REAL WORLD APPLICATIONS -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">3. Real-World Applications</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-indigo-500 transition-colors">
+                <div class="text-indigo-400 mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+                <h3 class="font-bold text-white mb-2">Computers & Files</h3>
+                <p class="text-sm text-slate-400">Software and files are stored as strings of 1s and 0s. Binary math is discrete mathematics.</p>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-indigo-500 transition-colors">
+                <div class="text-indigo-400 mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                </div>
+                <h3 class="font-bold text-white mb-2">Networks</h3>
+                <p class="text-sm text-slate-400">The internet (routers/cables) and social media (friends/followers) are modeled as discrete structures (Graphs).</p>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-indigo-500 transition-colors">
+                <div class="text-indigo-400 mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                </div>
+                <h3 class="font-bold text-white mb-2">Google Maps</h3>
+                <p class="text-sm text-slate-400">Uses discrete math (Graph Theory) to determine the fastest driving routes and times.</p>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-indigo-500 transition-colors">
+                <div class="text-indigo-400 mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <h3 class="font-bold text-white mb-2">Scheduling</h3>
+                <p class="text-sm text-slate-400">Scheduling nurses, pilots, or rooms is solved using Graph Coloring or Combinatorial Optimization.</p>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-indigo-500 transition-colors">
+                <div class="text-indigo-400 mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h3 class="font-bold text-white mb-2">Cryptography</h3>
+                <p class="text-sm text-slate-400">Secure shopping and data protection rely on discrete number theory (primes, modular arithmetic).</p>
+            </div>
+
+             <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-indigo-500 transition-colors">
+                <div class="text-indigo-400 mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <h3 class="font-bold text-white mb-2">Digital Image Processing</h3>
+                <p class="text-sm text-slate-400">Merging images or applying filters uses discrete matrices of pixel values.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: ACTIVITY -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">4. Activity: Discrete vs. Continuous?</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <p class="mb-6 text-slate-300">Click on the items to classify them.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div onclick="checkData('discrete', 'You can count whole people.')" class="cursor-pointer bg-slate-700 p-4 rounded-lg hover:bg-slate-600 border border-slate-600">
+                    <span class="text-white font-bold">1. Number of students in class</span>
+                </div>
+                <div onclick="checkData('continuous', 'Height is measured on a scale (e.g., 1.75m).')" class="cursor-pointer bg-slate-700 p-4 rounded-lg hover:bg-slate-600 border border-slate-600">
+                    <span class="text-white font-bold">2. Your height</span>
+                </div>
+                <div onclick="checkData('discrete', 'You cannot have 1.5 files.')" class="cursor-pointer bg-slate-700 p-4 rounded-lg hover:bg-slate-600 border border-slate-600">
+                    <span class="text-white font-bold">3. Digital files on a USB</span>
+                </div>
+                <div onclick="checkData('continuous', 'Time flows continuously (e.g., 10.5 seconds).')" class="cursor-pointer bg-slate-700 p-4 rounded-lg hover:bg-slate-600 border border-slate-600">
+                    <span class="text-white font-bold">4. Time taken to run 100m</span>
+                </div>
+                <div onclick="checkData('continuous', 'Weight is a measurement.')" class="cursor-pointer bg-slate-700 p-4 rounded-lg hover:bg-slate-600 border border-slate-600">
+                    <span class="text-white font-bold">5. Weight of a cat</span>
+                </div>
+                 <div onclick="checkData('discrete', 'Money is countable (cents/pesos).')" class="cursor-pointer bg-slate-700 p-4 rounded-lg hover:bg-slate-600 border border-slate-600">
+                    <span class="text-white font-bold">6. Amount of money in your wallet</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- FEEDBACK MODAL (Hidden by default) -->
+<div id="feedback-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-slate-800 p-8 rounded-2xl border border-slate-600 shadow-2xl max-w-md w-full mx-4 transform transition-all">
+        <div class="text-center mb-6" id="modal-icon"></div>
+        <h3 id="modal-title" class="text-2xl font-bold text-white text-center mb-2"></h3>
+        <div id="modal-message" class="text-slate-300 text-center mb-8 leading-relaxed"></div>
+        <button id="modal-button" onclick="closeModal()" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
+            Continue
+        </button>
+    </div>
+</div>
+
+</body>
+</html>

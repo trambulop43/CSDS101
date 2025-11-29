@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week {{ lesson.week }} - {{ lesson.topic }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<!-- MathJax -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+<header class="bg-indigo-900/50 backdrop-blur-sm py-8 shadow-xl border-b border-indigo-700/50">
+    <div class="container mx-auto px-6 max-w-6xl flex justify-between items-center">
+        <a href="/" class="text-xl font-extrabold text-indigo-400 hover:text-indigo-300 transition-colors">← Back to Syllabus</a>
+        <div class="text-right">
+            <h1 class="text-2xl font-bold text-white">{{ lesson.topic }}</h1>
+            <p class="text-sm text-slate-400">Week {{ lesson.week }} | {{ period.name }}</p>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-6 py-10 max-w-6xl flex-grow">
+    
+    <section class="mb-12">
+        <h2 class="text-3xl font-bold text-teal-400 mb-6 border-b border-slate-700 pb-2">1. Permutations vs Combinations</h2>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Permutations -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-l-4 border-l-teal-500 border-slate-700">
+                <h3 class="text-2xl font-bold text-white mb-2">Permutation ($P$)</h3>
+                <p class="text-teal-300 font-semibold mb-4">Order MATTERS</p>
+                <p class="text-slate-300 mb-4">Arranging items in a specific sequence (e.g., 1st, 2nd, 3rd place).</p>
+                <div class="bg-slate-900 p-4 rounded">
+                    <p class="font-mono text-center text-lg text-white">$_nP_r = \frac{n!}{(n-r)!}$</p>
+                </div>
+            </div>
+
+            <!-- Combinations -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-l-4 border-l-purple-500 border-slate-700">
+                <h3 class="text-2xl font-bold text-white mb-2">Combination ($C$)</h3>
+                <p class="text-purple-300 font-semibold mb-4">Order DOES NOT Matter</p>
+                <p class="text-slate-300 mb-4">Selecting a group of items (e.g., a committee of 3 people).</p>
+                <div class="bg-slate-900 p-4 rounded">
+                    <p class="font-mono text-center text-lg text-white">$_nC_r = \frac{n!}{(n-r)!r!}$</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-12">
+        <h2 class="text-3xl font-bold text-teal-400 mb-6 border-b border-slate-700 pb-2">2. Example Problems</h2>
+        <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 space-y-6">
+            <div>
+                <p class="text-white font-bold">Q: License plate with 3 letters?</p>
+                <p class="text-slate-400">Use Permutation (or product rule) because ABC is different from CBA.</p>
+            </div>
+            <div class="border-t border-slate-700 pt-4">
+                <p class="text-white font-bold">Q: Fruit salad with 3 fruits?</p>
+                <p class="text-slate-400">Use Combination because {Apple, Banana, Orange} is the same salad as {Orange, Apple, Banana}.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources -->
+    <section>
+        <h2 class="text-3xl font-bold text-teal-400 mb-6 border-b border-slate-700 pb-2">3. Lecture Materials</h2>
+        <div class="flex items-center space-x-4">
+            {% if lesson.pdf_link %}
+            <a href="{{ url_for('uploaded_file', filename=lesson.pdf_link) }}" target="_blank" class="flex items-center space-x-3 bg-slate-800 hover:bg-slate-700 p-4 rounded-xl border border-slate-600 transition-all group">
+                <div class="bg-red-500/20 p-3 rounded-lg group-hover:bg-red-500/30 transition-colors">
+                    <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <p class="text-white font-semibold">Download Lecture Slides</p>
+                    <p class="text-sm text-slate-400">{{ lesson.pdf_link }}</p>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+    </section>
+
+</main>
+</body>
+</html>

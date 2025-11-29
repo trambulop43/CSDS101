@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W{{ lesson.week }} | {{ lesson.topic }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script>
+    // --- Tab Switching Interactivity ---
+    function switchTab(lessonId, tabName) {
+        // Hide all tab content for this lesson
+        document.querySelectorAll(`#content-tabs .tab-content`).forEach(div => {
+            div.classList.add('hidden');
+        });
+        // Deactivate all buttons for this lesson
+        document.querySelectorAll(`#tab-buttons .tab-button`).forEach(button => {
+            button.classList.remove('bg-indigo-700', 'text-white');
+            button.classList.add('text-indigo-300', 'hover:bg-slate-700');
+        });
+
+        // Show the selected tab content
+        document.getElementById(`${lessonId}-${tabName}-content`).classList.remove('hidden');
+        // Activate the selected button
+        document.getElementById(`${lessonId}-${tabName}-button`).classList.remove('text-indigo-300', 'hover:bg-slate-700');
+        document.getElementById(`${lessonId}-${tabName}-button`).classList.add('bg-indigo-700', 'text-white');
+    }
+
+    // --- Dynamic Tool Placeholder Logic (Truth Table Generator) ---
+    // This function dynamically generates rows and evaluates an expression using the 'Function' constructor,
+    // which acts as a simple, powerful expression evaluator for logic based on variable assignment.
+    function generateTruthTable(lessonId) {
+        let expression = document.getElementById(`${lessonId}-expression`).value.trim().toLowerCase();
+        const numVars = parseInt(document.getElementById(`${lessonId}-num-vars`).value);
+        const outputDiv = document.getElementById(`${lessonId}-truth-table-output`);
+        
+        // Allowed variables that map to the table structure
+        const availableVars = ['p', 'q', 'r', 's']; 
+        
+        if (!expression || !numVars || numVars > 4) {
+            outputDiv.innerHTML = '<p class="text-red-400">Please enter a valid expression and select 1-4 variables.</p>';
+            return;
+        }
+
+        const varNames = availableVars.slice(0, numVars);
+        const numRows = Math.pow(2, numVars);
+
+        // --- 1. Prepare JavaScript Expression for Evaluation ---
+        
+        // 1.1 Convert custom symbols to JS operators
+        let jsExpression = expression
+            .replace(/!/g, '!') // Negation (must be done first)
+            .replace(/\^/g, '&&') // Conjunction (AND)
+            .replace(/v/g, '||') // Disjunction (OR)
+            .replace(/->/g, '==>') // Placeholder for Implication 
+            .replace(/<->/g, '==='); // Biconditional (Equality check in JS)
+
+        // 1.2 Handle Implication (A ==> B is !A || B). This must be done via REGEX 
+        // to handle the logical structure, even within parentheses.
+        // The regex captures any characters (including '(', ')', and '!') up to the next operator/end of string.
+        // It's still sensitive to complex nesting errors but is much better than the previous version.
+        const finalEvalString = jsExpression.replace(/([^=<>]+)\s*==>\s*([^=<>]+)/g, "(!$1 || $2)");
+        
+        // Create a dynamic function capable of evaluating the string using the variables p, q, r, s
+        // NOTE: The function arguments MUST match the variable names (p, q, r, s)
+        const evaluator = new Function(varNames.join(', '), `
+            try {
+                return (${finalEvalString});
+            } catch (e) {
+                return 'SYNTAX_ERROR';
+            }
+        `);
+        
+
+        // --- 2. Build Table Headers ---
+        let tableHtml = `<table class="min-w-full divide-y divide-indigo-600 rounded-lg overflow-hidden">
+            <thead>
+                <tr class="bg-indigo-800 text-sm font-semibold">`;
+        
+        varNames.forEach(v => {
+            tableHtml += `<th class="px-4 py-2 text-center">${v}</th>`;
+        });
+        
+        tableHtml += `<th class="px-4 py-2 text-center text-teal-400">${expression}</th></tr></thead>
+            <tbody class="bg-slate-700 divide-y divide-indigo-800 text-sm">`;
+
+        // --- 3. Generate Rows and Evaluate ---
+        for (let i = 0; i < numRows; i++) {
+            const currentArgs = [];
+            let displayRow = '';
+            
+            // Generate argument array and display string for the current row's T/F inputs
+            for (let j = 0; j < numVars; j++) {
+                const isTrue = ((i >> (numVars - 1 - j)) & 1) === 1;
+                currentArgs.push(isTrue);
+                displayRow += `<td class="px-4 py-2 text-center text-indigo-300">${isTrue ? 'T' : 'F'}</td>`;
+            }
+            
+            let finalResult;
+            try {
+                // Execute the dynamically created function with the current row's boolean values
+                const result = evaluator(...currentArgs);
+
+                // Check if the evaluator returned our internal error string
+                if (result === 'SYNTAX_ERROR') {
+                    finalResult = 'SYNTAX ERROR';
+                } else {
+                    // Convert boolean result back to 'T' or 'F'
+                    finalResult = (result === true) ? 'T' : (result === false) ? 'F' : 'ERROR';
+                }
+
+            } catch (e) {
+                finalResult = 'RUNTIME ERROR';
+                console.error("Evaluation error:", e);
+            }
+
+            tableHtml += `<tr>${displayRow}<td class="px-4 py-2 text-center font-bold text-white">${finalResult}</td></tr>`;
+        }
+        
+        tableHtml += '</tbody></table>';
+        outputDiv.innerHTML = tableHtml;
+    }
+
+
+    // --- Dynamic Tool Placeholder Logic (Matrix Calculator) ---
+    function calculateMatrices(lessonId) {
+        const matrixType = document.getElementById(`interactive-matrix-type`).value;
+        const matrixOutput = document.getElementById(`interactive-matrix-output`);
+        
+        // Dummy Matrices for demonstration (2x2)
+        const A = [[2, 1], [3, 4]];
+        const B = [[5, 6], [7, 8]];
+        let Result = [[]];
+        let resultText = '';
+
+        if (matrixType === 'Add') {
+            Result = [[A[0][0] + B[0][0], A[0][1] + B[0][1]], [A[1][0] + B[1][0], A[1][1] + B[1][1]]];
+            resultText = 'Addition Result (A + B)';
+        } else if (matrixType === 'Subtract') {
+            Result = [[A[0][0] - B[0][0], A[0][1] - B[0][1]], [A[1][0] - B[1][0], A[1][1] - B[1][1]]];
+            resultText = 'Subtraction Result (A - B)';
+        } else if (matrixType === 'Transpose A') {
+            Result = [[A[0][0], A[1][0]], [A[0][1], A[1][1]]];
+            resultText = 'Transpose of A ($A^T$)';
+        }
+
+        let matrixHtml = `<h5 class="text-lg font-semibold text-teal-400 mb-3">${resultText}</h5>
+            <div class="inline-block p-4 bg-slate-700 rounded-lg font-mono text-xl">
+            [<br>`;
+        
+        Result.forEach(row => {
+            matrixHtml += `&nbsp;&nbsp;[${row.join(', ')}],<br>`;
+        });
+        
+        matrixHtml += `]</div>`;
+        matrixOutput.innerHTML = matrixHtml;
+    }
+
+    // Initialization: Set the default active tab on load
+    document.addEventListener('DOMContentLoaded', () => {
+        switchTab('{{ period.id }}-week-{{ lesson.week }}', 'theory');
+    });
+</script>
+
+
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+<!-- Header (Back button in the nav) -->
+<header class="bg-indigo-900/50 backdrop-blur-sm py-8 shadow-xl border-b border-indigo-700/50">
+    <div class="container mx-auto px-6 max-w-6xl">
+        <nav class="flex justify-between items-center">
+            <a href="/" class="text-xl font-extrabold text-indigo-400 hover:text-indigo-300 transition-colors">← Back to Syllabus</a>
+            <span class="text-sm font-medium text-slate-400">{{ course_info.code }} - {{ course_info.title }}</span>
+        </nav>
+    </div>
+</header>
+
+<main class="container mx-auto px-6 py-10 max-w-6xl">
+    
+    <!-- Lesson Title and Info -->
+    <div class="mb-8 p-4 border-l-4 border-teal-500 bg-slate-800/50 rounded-lg">
+        <p class="text-sm text-indigo-400 uppercase font-semibold mb-1">{{ period.name }} (Week {{ lesson.week }})</p>
+        <h1 class="text-4xl font-extrabold text-white mb-2">{{ lesson.topic }}</h1>
+        <p class="text-slate-400 italic">{{ lesson.details | join(', ') }}</p>
+    </div>
+    
+    <!-- Modular Tab Buttons -->
+    <div id="tab-buttons" class="p-4 bg-slate-700 flex space-x-2 rounded-t-xl overflow-x-auto">
+        <button id="{{ period.id }}-week-{{ lesson.week }}-theory-button" onclick="switchTab('{{ period.id }}-week-{{ lesson.week }}', 'theory')" class="tab-button px-4 py-2 text-sm font-medium rounded-lg transition-colors">Theory Breakdown</button>
+        
+        {% if lesson.week <= 11 and lesson.week != 6 %}
+            <button id="{{ period.id }}-week-{{ lesson.week }}-interactive-button" onclick="switchTab('{{ period.id }}-week-{{ lesson.week }}', 'interactive')" class="tab-button px-4 py-2 text-sm font-medium rounded-lg transition-colors text-indigo-300 hover:bg-slate-700">Interactive Tool</button>
+        {% endif %}
+        
+        <button id="{{ period.id }}-week-{{ lesson.week }}-activities-button" onclick="switchTab('{{ period.id }}-week-{{ lesson.week }}', 'activities')" class="tab-button px-4 py-2 text-sm font-medium rounded-lg transition-colors text-indigo-300 hover:bg-slate-700">Activities & Assessments</button>
+        
+        {% if lesson.pdf_link %}
+        <a href="{{ url_for('uploaded_file', filename=lesson.pdf_link) }}" target="_blank" class="px-3 py-1 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-500 transition-colors flex items-center space-x-1 ml-auto">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2v8a2 2 0 01-2 2z"></path></svg>
+            <span>View Slides (PDF)</span>
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- TAB CONTENT AREA -->
+    <div id="content-tabs" class="p-6 bg-slate-800 rounded-b-xl min-h-[400px] border border-slate-700">
+        
+        <!-- 1. THEORY BREAKDOWN TAB -->
+        <div id="{{ period.id }}-week-{{ lesson.week }}-theory-content" class="tab-content space-y-6">
+            {% for lesson_detail in lesson.detailed_lessons %}
+            <div class="bg-slate-700/50 p-4 rounded-lg border border-slate-600">
+                <h5 class="text-lg text-indigo-300 font-semibold mb-2">{{ lesson_detail.title }}</h5>
+                <p class="text-sm text-slate-300 leading-relaxed">{{ lesson_detail.content | safe }}</p>
+            </div>
+            {% else %}
+                <p class="text-sm italic text-slate-400">Detailed theory breakdown for this lesson is coming soon.</p>
+            {% endfor %}
+        </div>
+
+        <!-- 2. INTERACTIVE TOOL TAB (Week-specific logic) -->
+        <div id="{{ period.id }}-week-{{ lesson.week }}-interactive-content" class="tab-content hidden space-y-6">
+            <h4 class="text-xl font-bold text-teal-400 border-b border-indigo-700 pb-2">Hands-on Tool</h4>
+            
+            {% if lesson.week == 1 %}
+            <!-- Truth Table Generator -->
+            <div id="tool-truth-table" class="bg-slate-700/50 p-6 rounded-lg space-y-4">
+                <h5 class="text-lg font-semibold text-white">Truth Table Generator (1-4 variables)</h5>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Variable Count Selector -->
+                    <div class="flex flex-col">
+                        <label for="interactive-num-vars" class="text-xs font-semibold text-slate-400 mb-1">Number of Variables</label>
+                        <select id="interactive-num-vars" class="p-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="1">1 (p)</option>
+                            <option value="2" selected>2 (p, q)</option>
+                            <option value="3">3 (p, q, r)</option>
+                            <option value="4">4 (p, q, r, s)</option>
+                        </select>
+                    </div>
+
+                    <!-- Expression Input -->
+                    <div class="flex flex-col">
+                        <label for="interactive-expression" class="text-xs font-semibold text-slate-400 mb-1">Logical Expression</label>
+                        <input id="interactive-expression" type="text" placeholder="e.g., (p ^ q) -> !r" class="p-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+                
+                <!-- Legend -->
+                <div class="bg-slate-600 p-3 rounded-lg">
+                    <p class="text-xs font-bold text-teal-400 mb-1">Operator Legend (Use these symbols in the input):</p>
+                    <div class="text-xs text-slate-300 grid grid-cols-3 gap-y-1">
+                        <span>&not; (NOT): `!`</span>
+                        <span>&and; (AND): `^`</span>
+                        <span>&or; (OR): `v`</span>
+                        <span>&rarr; (Implies): `->` (e.g., p->q)</span>
+                        <span>&harr; (Biconditional): `<->`</span>
+                        <span>Grouping: `( )`</span>
+                    </div>
+                </div>
+
+                <button onclick="generateTruthTable('interactive')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-lg transition-colors w-full">Generate Table</button>
+
+                <div id="interactive-truth-table-output" class="pt-4">
+                    <p class="text-slate-400 italic">Table will appear here (limited to p, q, r, s variables).</p>
+                </div>
+            </div>
+            {% elif lesson.week == 8 or lesson.week == 9 %}
+            <!-- Matrix Calculator -->
+            <div id="tool-matrix-calculator" class="bg-slate-700/50 p-6 rounded-lg space-y-4">
+                <h5 class="text-lg font-semibold text-white">Matrix Arithmetic Demo (2x2)</h5>
+                <p class="text-sm text-slate-400">Simulate operations on Matrix A = $\left[\begin{smallmatrix}2 & 1 \\ 3 & 4\end{smallmatrix}\right]$ and Matrix B = $\left[\begin{smallmatrix}5 & 6 \\ 7 & 8\end{smallmatrix}\right]$.</p>
+                <div class="flex space-x-3 items-center">
+                    <select id="interactive-matrix-type" class="p-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="Add">A + B (Addition)</option>
+                        <option value="Subtract">A - B (Subtraction)</option>
+                        <option value="Transpose A">Transpose A ($A^T$)</option>
+                    </select>
+                    <button onclick="calculateMatrices('interactive')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-lg transition-colors">Calculate</button>
+                </div>
+                <div id="interactive-matrix-output" class="pt-4">
+                    <p class="text-slate-400 italic">Result will appear here.</p>
+                </div>
+            </div>
+            {% elif lesson.week == 10 %}
+            <!-- Caesar Cipher -->
+            <div id="tool-caesar-cipher" class="bg-slate-700/50 p-6 rounded-lg space-y-4">
+                <h5 class="text-lg font-semibold text-white">Caesar Cipher (Shift) Encoder</h5>
+                <p class="text-sm text-slate-400">Practice encryption/decryption using the Caesar Shift method. (Simulated)</p>
+                <div class="flex flex-col space-y-2">
+                    <input type="text" placeholder="Enter plaintext message..." class="p-2 rounded-lg bg-slate-700 border border-slate-600 text-white">
+                    <div class="flex space-x-2">
+                        <input type="number" value="3" min="1" max="25" class="w-20 p-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-center">
+                        <button class="flex-grow bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-lg">Shift Right (Encrypt)</button>
+                    </div>
+                    <p class="text-sm text-indigo-300 pt-2">Ciphertext Output: [Simulated result]</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-sm italic text-slate-400">No dedicated interactive tool is available for this lesson yet.</p>
+            {% endif %}
+        </div>
+        
+        <!-- 3. ACTIVITIES TAB -->
+        <div id="{{ period.id }}-week-{{ lesson.week }}-activities-content" class="tab-content hidden">
+            <div class="space-y-4">
+                <h5 class="text-lg font-bold text-indigo-300 border-b border-indigo-700 pb-2">Assessments & Practice</h5>
+                <ul class="space-y-2 pl-4">
+                    {% for activity in lesson.activities %}
+                    <li class="text-sm text-slate-300 flex items-start gap-2">
+                        <svg class="w-5 h-5 text-teal-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>{{ activity }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                
+                {% if lesson.week == 6 %}
+                <div class="bg-red-900/40 p-4 rounded-lg text-white mt-6">
+                    <h5 class="font-bold">Preliminary Examination</h5>
+                    <p class="text-sm text-red-300">This week is reserved for the comprehensive examination covering all Preliminary Period topics.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+
+
+<!-- Footer -->
+<footer class="bg-slate-900 border-t border-slate-700 text-slate-400 py-8 mt-16">
+    <div class="container mx-auto px-6 text-center text-sm">
+        <p>Course Material for {{ course_info.title }}. Instructor: {{ instructor_info.name }}.</p>
+    </div>
+</footer>
+
+
+</body>
+</html>

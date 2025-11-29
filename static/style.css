@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+body {
+font-family: 'Inter', sans-serif;
+}
+
+/* Custom CSS utility classes previously inline in index.html /
+/ NOTE: Tailwind is primarily used, these are supplementary */
+.period-card {
+transition: all 0.3s ease;
+}
+
+.period-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom scrollbar for minimalist design */
+::-webkit-scrollbar {
+width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+background: #4f46e5; /* indigo-600 */
+border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+background: #1f2937; /* slate-800 or dark color */
+}

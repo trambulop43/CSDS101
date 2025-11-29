@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week {{ lesson.week }} - {{ lesson.topic }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<!-- MathJax -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+    // --- Modal Logic ---
+    function showModal(title, message, isCorrect) {
+        const modal = document.getElementById('feedback-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalIcon = document.getElementById('modal-icon');
+        const modalButton = document.getElementById('modal-button');
+
+        modalTitle.textContent = title;
+        modalMessage.innerHTML = message; 
+
+        if (isCorrect === true) {
+            modalTitle.className = "text-2xl font-bold text-green-400 text-center mb-2";
+            modalIcon.innerHTML = '<svg class="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+            modalButton.className = "w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-bold";
+        } else if (isCorrect === false) {
+            modalTitle.className = "text-2xl font-bold text-red-400 text-center mb-2";
+            modalIcon.innerHTML = '<svg class="w-16 h-16 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+            modalButton.className = "w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-bold";
+        } else {
+            // Info modal style for activity answers
+            modalTitle.className = "text-2xl font-bold text-indigo-400 text-center mb-2";
+            modalIcon.innerHTML = '<svg class="w-16 h-16 text-indigo-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+            modalButton.className = "w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-bold";
+        }
+        modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('feedback-modal').classList.add('hidden');
+    }
+
+    // --- Quiz Logic ---
+    function checkQuestion(quizName, questionNum, correctAnswer, explanation) {
+        const selected = document.querySelector(`input[name="${quizName}-q${questionNum}"]:checked`);
+        
+        if (!selected) {
+            showModal("Notice", "Please select an answer before checking.", null); 
+            return;
+        }
+
+        if (selected.value === correctAnswer) {
+            showModal("Correct!", "Great job! That is the correct answer.", true);
+        } else {
+            showModal("Incorrect", `
+                <div class="space-y-4">
+                    <p class="text-lg">The correct answer was <strong>${correctAnswer.toUpperCase()}</strong>.</p>
+                    <div class="bg-slate-700/50 p-4 rounded-lg text-sm text-slate-300 border-l-4 border-red-500 text-left">
+                        <strong>Explanation:</strong><br>${explanation}
+                    </div>
+                </div>
+            `, false);
+        }
+    }
+
+    // --- Activity Logic (Show Answer) ---
+    function showAnswer(questionText, answerText) {
+        showModal("Answer Reveal", `
+            <div class="flex flex-col items-center space-y-4">
+                <div class="w-full bg-slate-700/30 p-3 rounded-lg border border-slate-600">
+                    <p class="text-xs text-slate-400 uppercase font-bold">Question</p>
+                    <p class="text-lg text-white">${questionText}</p>
+                </div>
+                <div class="w-full bg-green-900/20 p-4 rounded-lg border border-green-500/30">
+                    <p class="text-xs text-green-400 uppercase font-bold">Answer</p>
+                    <p class="text-xl text-white font-bold">${answerText}</p>
+                </div>
+            </div>
+        `, null);
+    }
+
+    // --- Truth Table Generator Logic ---
+    function isOperator(c) { return ['!', '&', '|', '>', '=', '(', ')'].includes(c); }
+    function getPrecedence(op) {
+        if (op === '!') return 4;
+        if (op === '&') return 3;
+        if (op === '|') return 2;
+        if (op === '>') return 1; 
+        if (op === '=') return 0; 
+        return -1;
+    }
+    function evaluatePostfix(postfix, values) {
+        let stack = [];
+        for (let token of postfix) {
+            if (token === 'T' || token === 'F') stack.push(token === 'T');
+            else if (['p', 'q', 'r', 's'].includes(token)) stack.push(values[token]);
+            else {
+                let a, b;
+                if (token === '!') { a = stack.pop(); stack.push(!a); }
+                else {
+                    b = stack.pop(); a = stack.pop();
+                    if (token === '&') stack.push(a && b);
+                    else if (token === '|') stack.push(a || b);
+                    else if (token === '>') stack.push(!a || b);
+                    else if (token === '=') stack.push(a === b);
+                }
+            }
+        }
+        return stack.pop();
+    }
+    function infixToPostfix(expression) {
+        let outputQueue = [];
+        let operatorStack = [];
+        let tokens = expression.replace(/\s+/g, '').replace(/->/g, '>').replace(/<->/g, '=').replace(/\^/g, '&').replace(/v/g, '|').split('');
+        for (let i = 0; i < tokens.length; i++) {
+            let token = tokens[i];
+            if (['p', 'q', 'r', 's', 'T', 'F'].includes(token)) outputQueue.push(token);
+            else if (token === '(') operatorStack.push(token);
+            else if (token === ')') {
+                while (operatorStack.length > 0 && operatorStack[operatorStack.length - 1] !== '(') outputQueue.push(operatorStack.pop());
+                operatorStack.pop();
+            } else if (isOperator(token)) {
+                while (operatorStack.length > 0 && getPrecedence(operatorStack[operatorStack.length - 1]) >= getPrecedence(token)) outputQueue.push(operatorStack.pop());
+                operatorStack.push(token);
+            }
+        }
+        while (operatorStack.length > 0) outputQueue.push(operatorStack.pop());
+        return outputQueue;
+    }
+
+    // Evaluate and Capture Intermediate Steps
+    function evaluateWithSteps(postfix, values) {
+        let stack = [];
+        let steps = {}; 
+
+        for (let token of postfix) {
+            if (['p', 'q', 'r', 's', 'T', 'F'].includes(token)) {
+                let val = (token === 'T') ? true : (token === 'F') ? false : values[token];
+                stack.push({ val: val, expr: token });
+            } else {
+                let a, b;
+                let newVal, newExpr;
+                
+                if (token === '!') { 
+                    a = stack.pop(); 
+                    newVal = !a.val;
+                    newExpr = (a.expr.length > 1) ? `¬(${a.expr})` : `¬${a.expr}`;
+                    
+                    stack.push({ val: newVal, expr: newExpr });
+                    steps[newExpr] = newVal;
+                } else {
+                    b = stack.pop(); 
+                    a = stack.pop();
+                    let newVal;
+                    let opSym = {'&':'∧', '|':'∨', '>':'→', '=':'↔'}[token];
+                    
+                    if (token === '&') newVal = a.val && b.val;
+                    else if (token === '|') newVal = a.val || b.val;
+                    else if (token === '>') newVal = !a.val || b.val;
+                    else if (token === '=') newVal = a.val === b.val;
+                    
+                    newExpr = `(${a.expr} ${opSym} ${b.expr})`;
+                    
+                    stack.push({ val: newVal, expr: newExpr });
+                    steps[newExpr] = newVal;
+                }
+            }
+        }
+        return { result: stack.pop(), steps: steps };
+    }
+
+    function getColumnHeaders(postfix) {
+        let stack = [];
+        let headers = [];
+        
+        for (let token of postfix) {
+            if (['p', 'q', 'r', 's', 'T', 'F'].includes(token)) {
+                stack.push(token);
+            } else {
+                let a, b, newExpr;
+                if (token === '!') {
+                    a = stack.pop();
+                    newExpr = (a.length > 1) ? `¬(${a})` : `¬${a}`;
+                } else {
+                    b = stack.pop(); a = stack.pop();
+                    let opSym = {'&':'∧', '|':'∨', '>':'→', '=':'↔'}[token];
+                    newExpr = `(${a} ${opSym} ${b})`;
+                }
+                stack.push(newExpr);
+                headers.push(newExpr);
+            }
+        }
+        if (headers.length > 0) headers.pop();
+        return headers;
+    }
+
+    function generateTruthTable() {
+        const expressionInput = document.getElementById('expression').value;
+        const numVars = parseInt(document.getElementById('num-vars').value);
+        const outputDiv = document.getElementById('truth-table-output');
+        
+        if (!expressionInput) { outputDiv.innerHTML = '<p class="text-red-400">Please enter an expression.</p>'; return; }
+
+        try {
+            const postfix = infixToPostfix(expressionInput);
+            const vars = ['p', 'q', 'r', 's'].slice(0, numVars);
+            const numRows = Math.pow(2, numVars);
+            const subExprHeaders = getColumnHeaders(postfix);
+
+            let tableHTML = `<table class="w-full text-sm text-left text-slate-300 border-collapse"><thead class="text-xs uppercase bg-slate-800 text-indigo-300"><tr>`;
+            
+            vars.forEach(v => tableHTML += `<th class="px-4 py-2 border border-slate-700 text-center">${v}</th>`);
+            subExprHeaders.forEach(h => tableHTML += `<th class="px-4 py-2 border border-slate-700 text-slate-500 text-center">${h}</th>`);
+            tableHTML += `<th class="px-4 py-2 border border-slate-700 text-white font-bold bg-indigo-900/50 text-center">Final: ${expressionInput}</th></tr></thead><tbody>`;
+            
+            for (let i = numRows - 1; i >= 0; i--) {
+                let rowValues = {};
+                let rowHTML = '<tr>';
+                
+                for (let j = 0; j < numVars; j++) {
+                    const val = (i >> (numVars - 1 - j)) & 1 ? true : false;
+                    rowValues[vars[j]] = val;
+                    rowHTML += `<td class="px-4 py-2 border border-slate-700 font-mono text-center ${val ? 'text-green-400' : 'text-red-400'}">${val ? 'T' : 'F'}</td>`;
+                }
+
+                const evalData = evaluateWithSteps(postfix, rowValues);
+
+                subExprHeaders.forEach(h => {
+                    let val = evalData.steps[h]; 
+                    if(val === undefined) val = evalData.steps[h.replace(/^\(|\)$/g, '')]; 
+
+                    let display = (val === true) ? 'T' : 'F';
+                    let color = (val === true) ? 'text-green-400' : 'text-red-400';
+                    rowHTML += `<td class="px-4 py-2 border border-slate-700 font-mono text-center ${color}">${display}</td>`;
+                });
+
+                const res = evalData.result.val;
+                rowHTML += `<td class="px-4 py-2 border border-slate-700 font-bold text-white text-center ${res ? 'bg-green-900/20' : 'bg-red-900/20'}">${res ? 'T' : 'F'}</td></tr>`;
+                
+                tableHTML += rowHTML;
+            }
+
+            tableHTML += '</tbody></table>';
+            outputDiv.innerHTML = tableHTML;
+            
+        } catch (e) {
+            console.error(e);
+            outputDiv.innerHTML = `<p class="text-red-400">Error parsing expression. Please check syntax (e.g. use p, q, ^, v).</p>`;
+        }
+    }
+</script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+<header class="bg-indigo-900/50 backdrop-blur-sm py-8 shadow-xl border-b border-indigo-700/50">
+    <div class="container mx-auto px-6 max-w-6xl flex justify-between items-center">
+        <a href="/" class="text-xl font-extrabold text-indigo-400 hover:text-indigo-300 transition-colors">← Syllabus</a>
+        <div class="text-right">
+            <h1 class="text-2xl font-bold text-white">{{ lesson.topic }}</h1>
+            <p class="text-sm text-slate-400">Week {{ lesson.week }}</p>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-6 py-10 max-w-5xl flex-grow">
+    
+    <!-- SECTION 0: MATHEMATICAL SYMBOLS & CONVENTIONS (NEW) -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">0. Reference: Mathematical Symbols</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <p class="text-slate-300 mb-6">A quick reference guide to the common symbols used in Discrete Mathematics.</p>
+            
+            <!-- Sets & Logic Symbols -->
+            <h3 class="text-xl font-bold text-white mb-4">Sets and Logic</h3>
+            <div class="overflow-x-auto mb-8">
+                <table class="w-full text-left text-sm text-slate-300 border-collapse">
+                    <thead class="bg-slate-900 text-indigo-400 uppercase text-xs">
+                        <tr>
+                            <th class="p-3 border border-slate-700">Symbol</th>
+                            <th class="p-3 border border-slate-700">Name</th>
+                            <th class="p-3 border border-slate-700">Meaning</th>
+                            <th class="p-3 border border-slate-700">Example</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700">
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\cup$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Union</td>
+                            <td class="p-3 border border-slate-700">Elements in A OR B</td>
+                            <td class="p-3 border border-slate-700">$A \cup B$</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\cap$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Intersection</td>
+                            <td class="p-3 border border-slate-700">Elements in A AND B</td>
+                            <td class="p-3 border border-slate-700">$A \cap B$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\in$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Element</td>
+                            <td class="p-3 border border-slate-700">x is an element of A</td>
+                            <td class="p-3 border border-slate-700">$x \in A$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\notin$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Not Element</td>
+                            <td class="p-3 border border-slate-700">x is not in A</td>
+                            <td class="p-3 border border-slate-700">$x \notin A$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\subset$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Subset</td>
+                            <td class="p-3 border border-slate-700">A is a subset of B</td>
+                            <td class="p-3 border border-slate-700">$A \subset B$</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\wedge$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Conjunction</td>
+                            <td class="p-3 border border-slate-700">Logical AND</td>
+                            <td class="p-3 border border-slate-700">$p \wedge q$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\vee$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Disjunction</td>
+                            <td class="p-3 border border-slate-700">Logical OR</td>
+                            <td class="p-3 border border-slate-700">$p \vee q$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\sim$ or $\neg$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Negation</td>
+                            <td class="p-3 border border-slate-700">Not A</td>
+                            <td class="p-3 border border-slate-700">$\neg p$</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\rightarrow$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Implication</td>
+                            <td class="p-3 border border-slate-700">If A, then B</td>
+                            <td class="p-3 border border-slate-700">$p \rightarrow q$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\leftrightarrow$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Biconditional</td>
+                            <td class="p-3 border border-slate-700">A if and only if B</td>
+                            <td class="p-3 border border-slate-700">$p \leftrightarrow q$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\forall$</td>
+                            <td class="p-3 border border-slate-700 font-bold">For All</td>
+                            <td class="p-3 border border-slate-700">Universal Quantifier</td>
+                            <td class="p-3 border border-slate-700">$\forall x$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\exists$</td>
+                            <td class="p-3 border border-slate-700 font-bold">There Exists</td>
+                            <td class="p-3 border border-slate-700">Existential Quantifier</td>
+                            <td class="p-3 border border-slate-700">$\exists x$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\therefore$</td>
+                            <td class="p-3 border border-slate-700 font-bold">Therefore</td>
+                            <td class="p-3 border border-slate-700">Logical Conclusion</td>
+                            <td class="p-3 border border-slate-700">$\therefore C$</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Operations & Relations Symbols -->
+            <h3 class="text-xl font-bold text-white mb-4">Operations & Relations</h3>
+            <div class="overflow-x-auto mb-8">
+                <table class="w-full text-left text-sm text-slate-300 border-collapse">
+                    <thead class="bg-slate-900 text-indigo-400 uppercase text-xs">
+                        <tr>
+                            <th class="p-3 border border-slate-700">Symbol</th>
+                            <th class="p-3 border border-slate-700">Name</th>
+                            <th class="p-3 border border-slate-700">Example</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700">
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$+$</td>
+                            <td class="p-3 border border-slate-700">Addition</td>
+                            <td class="p-3 border border-slate-700">$3 + 2$</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$-$</td>
+                            <td class="p-3 border border-slate-700">Subtraction</td>
+                            <td class="p-3 border border-slate-700">$3 - 2$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\cdot$ or $()$</td>
+                            <td class="p-3 border border-slate-700">Multiplication</td>
+                            <td class="p-3 border border-slate-700">$4 \cdot 3$ or $(4)(3)$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\div$ or $|$</td>
+                            <td class="p-3 border border-slate-700">Division / Divides</td>
+                            <td class="p-3 border border-slate-700">$10 \div 5$ or $5 | 10$</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\circ$</td>
+                            <td class="p-3 border border-slate-700">Composition</td>
+                            <td class="p-3 border border-slate-700">$f \circ g(x)$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$=$</td>
+                            <td class="p-3 border border-slate-700">Equal To</td>
+                            <td class="p-3 border border-slate-700">$5 = 5$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\neq$</td>
+                            <td class="p-3 border border-slate-700">Not Equal To</td>
+                            <td class="p-3 border border-slate-700">$3 \neq 4$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$>$</td>
+                            <td class="p-3 border border-slate-700">Greater Than</td>
+                            <td class="p-3 border border-slate-700">$10 > 5$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$<$</td>
+                            <td class="p-3 border border-slate-700">Less Than</td>
+                            <td class="p-3 border border-slate-700">$5 < 10$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\geq$</td>
+                            <td class="p-3 border border-slate-700">Greater or Equal</td>
+                            <td class="p-3 border border-slate-700">$x \geq 5$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\leq$</td>
+                            <td class="p-3 border border-slate-700">Less or Equal</td>
+                            <td class="p-3 border border-slate-700">$y \leq 10$</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Set of Numbers Symbols -->
+            <h3 class="text-xl font-bold text-white mb-4">Set of Numbers</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300 border-collapse">
+                    <thead class="bg-slate-900 text-indigo-400 uppercase text-xs">
+                        <tr>
+                            <th class="p-3 border border-slate-700">Symbol</th>
+                            <th class="p-3 border border-slate-700">Name</th>
+                            <th class="p-3 border border-slate-700">Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700">
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\mathbb{N}_0$</td>
+                            <td class="p-3 border border-slate-700">Whole Numbers</td>
+                            <td class="p-3 border border-slate-700">$\{0, 1, 2, 3, ...\}$</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\mathbb{N}_1$</td>
+                            <td class="p-3 border border-slate-700">Natural Numbers</td>
+                            <td class="p-3 border border-slate-700">$\{1, 2, 3, 4, ...\}$</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\mathbb{Z}$</td>
+                            <td class="p-3 border border-slate-700">Integers</td>
+                            <td class="p-3 border border-slate-700">$\{..., -2, -1, 0, 1, 2, ...\}$</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\mathbb{Q}$</td>
+                            <td class="p-3 border border-slate-700">Rational Numbers</td>
+                            <td class="p-3 border border-slate-700">$\{x | x=a/b, b \neq 0\}$</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\mathbb{R}$</td>
+                            <td class="p-3 border border-slate-700">Real Numbers</td>
+                            <td class="p-3 border border-slate-700">$\{x | -\infty < x < \infty\}$</td>
+                        </tr>
+                         <tr>
+                            <td class="p-3 border border-slate-700 font-mono text-teal-400">$\mathbb{C}$</td>
+                            <td class="p-3 border border-slate-700">Complex Numbers</td>
+                            <td class="p-3 border border-slate-700">$\{z | z=a+bi\}$</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SECTION 1: DEEP DIVE THEORY -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">1. In-Depth: Propositional Logic</h2>
+        
+        <div class="space-y-8">
+            <!-- Topic A -->
+            <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+                <h3 class="text-2xl font-bold text-white mb-4">1.1 Propositions</h3>
+                <p class="text-slate-300 mb-4 leading-relaxed">
+                    A <strong>proposition</strong> is a declarative statement that is either true or false, but not both. It is the fundamental unit of logic. We typically use lowercase letters like $p, q, r$ to represent them.
+                </p>
+                <div class="grid md:grid-cols-2 gap-6 mt-6">
+                    <div class="bg-green-900/20 p-4 rounded-lg border border-green-500/30">
+                        <h4 class="font-bold text-green-400 mb-2">Valid Propositions</h4>
+                        <ul class="list-disc list-inside text-sm text-slate-300 space-y-1">
+                            <li>"Paris is in France." (True)</li>
+                            <li>"1 + 1 = 3." (False)</li>
+                            <li>"It is raining today." (True/False depending on fact)</li>
+                        </ul>
+                    </div>
+                    <div class="bg-red-900/20 p-4 rounded-lg border border-red-500/30">
+                        <h4 class="font-bold text-red-400 mb-2">Not Propositions</h4>
+                        <ul class="list-disc list-inside text-sm text-slate-300 space-y-1">
+                            <li>"What time is it?" (Question)</li>
+                            <li>"Clean your room!" (Command)</li>
+                            <li>"x + 1 = 2" (Variable x makes truth value unknown unless defined)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topic B -->
+            <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+                <h3 class="text-2xl font-bold text-white mb-4">1.2 Logical Connectives</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900 text-indigo-300 uppercase font-bold">
+                            <tr><th class="p-4">Name</th><th class="p-4">Symbol</th><th class="p-4">Logic</th><th class="p-4">Example</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700 text-slate-300">
+                            <tr><td class="p-4">Negation</td><td class="p-4 font-mono text-lg">¬p</td><td class="p-4">Opposite truth value</td><td class="p-4">NOT raining</td></tr>
+                            <tr><td class="p-4">Conjunction</td><td class="p-4 font-mono text-lg">p ∧ q</td><td class="p-4">True only if BOTH are true</td><td class="p-4">Raining AND Cold</td></tr>
+                            <tr><td class="p-4">Disjunction</td><td class="p-4 font-mono text-lg">p ∨ q</td><td class="p-4">True if AT LEAST one is true</td><td class="p-4">Raining OR Cold</td></tr>
+                            <tr><td class="p-4">Implication</td><td class="p-4 font-mono text-lg">p → q</td><td class="p-4">False only if T → F</td><td class="p-4">IF raining THEN wet</td></tr>
+                            <tr><td class="p-4">Biconditional</td><td class="p-4 font-mono text-lg">p ↔ q</td><td class="p-4">True if p and q have SAME value</td><td class="p-4">Raining IFF Cloudy</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: INTERACTIVE LAB -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">2. Interactive Lab: Truth Tables</h2>
+        <div class="bg-slate-800 p-8 rounded-xl border border-indigo-600/50 shadow-lg">
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="md:w-1/3 space-y-4">
+                    <h3 class="text-xl font-semibold text-white">Generator Controls</h3>
+                    <p class="text-sm text-slate-400">Use $p$ and $q$ to test your logic.</p>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-300 mb-1">Variables</label>
+                        <select id="num-vars" class="w-full p-2 rounded bg-slate-700 border border-slate-600 text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="2">2 (p, q)</option>
+                            <option value="3">3 (p, q, r)</option>
+                            <option value="4">4 (p, q, r, s)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-300 mb-1">Expression</label>
+                        <input id="expression" type="text" placeholder="(p ^ q) v (r -> s)" class="w-full p-2 rounded bg-slate-700 border border-slate-600 text-white font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <p class="text-xs text-slate-500 mt-1">Use: !, &, ^, |, v, ->, <-></p>
+                    </div>
+                    <button onclick="generateTruthTable()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded transition-colors shadow-lg">Generate Table</button>
+                </div>
+                
+                <div class="md:w-2/3 bg-slate-900 rounded-lg p-4 min-h-[300px] overflow-x-auto border border-slate-700" id="truth-table-output">
+                    <div class="h-full flex items-center justify-center text-slate-600 italic">
+                        Enter an expression and click Generate
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: PRACTICE ACTIVITY (30 Questions) -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">3. Activity: Practice Problems (30 Items)</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <p class="mb-6 text-slate-300">Click the cards to reveal the answer.</p>
+            
+            <!-- Grid for 2 rows on medium+ screens -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Q1 -->
+                <div onclick="showAnswer('Is &quot;Close the door&quot; a proposition?', 'No (Command)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">1.</span>
+                    <span class="text-white">Is "Close the door" a proposition?</span>
+                </div>
+
+                <!-- Q2 -->
+                <div onclick="showAnswer('Translate: p ∧ ¬q', 'p AND NOT q')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">2.</span>
+                    <span class="text-white">Translate: $p \land \neg q$</span>
+                </div>
+
+                <!-- Q3 -->
+                <div onclick="showAnswer('T → F evaluates to?', 'False')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">3.</span>
+                    <span class="text-white">$T \to F$ evaluates to?</span>
+                </div>
+
+                <!-- Q4 -->
+                <div onclick="showAnswer('F ∨ T evaluates to?', 'True')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">4.</span>
+                    <span class="text-white">$F \lor T$ evaluates to?</span>
+                </div>
+
+                <!-- Q5 -->
+                <div onclick="showAnswer('Symbol for Negation?', '¬ or ~')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">5.</span>
+                    <span class="text-white">Symbol for Negation?</span>
+                </div>
+
+                <!-- Q6 -->
+                <div onclick="showAnswer('Is &quot;3 < 5&quot; a proposition?', 'Yes (True)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">6.</span>
+                    <span class="text-white">Is "3 < 5" a proposition?</span>
+                </div>
+
+                <!-- Q7 -->
+                <div onclick="showAnswer('Name for p ↔ q?', 'Biconditional')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">7.</span>
+                    <span class="text-white">Name for $p \leftrightarrow q$?</span>
+                </div>
+
+                <!-- Q8 -->
+                <div onclick="showAnswer('Truth value of T ∧ T?', 'True')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">8.</span>
+                    <span class="text-white">Truth value of $T \land T$?</span>
+                </div>
+
+                <!-- Q9 -->
+                <div onclick="showAnswer('Truth value of F → T?', 'True')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">9.</span>
+                    <span class="text-white">Truth value of $F \to T$?</span>
+                </div>
+
+                <!-- Q10 -->
+                <div onclick="showAnswer('Symbol for XOR?', '⊕')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">10.</span>
+                    <span class="text-white">Symbol for XOR?</span>
+                </div>
+
+                <!-- Q11 -->
+                <div onclick="showAnswer('T XOR F = ?', 'True')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">11.</span>
+                    <span class="text-white">T XOR F = ?</span>
+                </div>
+
+                <!-- Q12 -->
+                <div onclick="showAnswer('T XOR T = ?', 'False')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">12.</span>
+                    <span class="text-white">T XOR T = ?</span>
+                </div>
+
+                <!-- Q13 -->
+                <div onclick="showAnswer('T ↔ F = ?', 'False')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">13.</span>
+                    <span class="text-white">$T \leftrightarrow F$ = ?</span>
+                </div>
+
+                <!-- Q14 -->
+                <div onclick="showAnswer('What is a Tautology?', 'Always True proposition')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">14.</span>
+                    <span class="text-white">What is a Tautology?</span>
+                </div>
+
+                <!-- Q15 -->
+                <div onclick="showAnswer('What is a Contradiction?', 'Always False proposition')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">15.</span>
+                    <span class="text-white">What is a Contradiction?</span>
+                </div>
+
+                <!-- Q16 -->
+                <div onclick="showAnswer('¬(p ∧ q) ≡ ?', '¬p ∨ ¬q')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">16.</span>
+                    <span class="text-white">$\neg (p \land q) \equiv$ ?</span>
+                </div>
+
+                <!-- Q17 -->
+                <div onclick="showAnswer('Rows in table with 3 variables?', '8 (2^3)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">17.</span>
+                    <span class="text-white">Rows in table with 3 variables?</span>
+                </div>
+
+                <!-- Q18 -->
+                <div onclick="showAnswer('Rows in table with 4 variables?', '16 (2^4)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">18.</span>
+                    <span class="text-white">Rows in table with 4 variables?</span>
+                </div>
+
+                <!-- Q19 -->
+                <div onclick="showAnswer('Is &quot;x + y&quot; a proposition?', 'No (Expression, not sentence)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">19.</span>
+                    <span class="text-white">Is "x + y" a proposition?</span>
+                </div>
+
+                <!-- Q20 -->
+                <div onclick="showAnswer('Truth value of F ∧ T?', 'False')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">20.</span>
+                    <span class="text-white">Truth value of $F \land T$?</span>
+                </div>
+
+                <!-- Q21 -->
+                <div onclick="showAnswer('If p is True, what is ¬p?', 'False')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">21.</span>
+                    <span class="text-white">If p is True, what is $\neg p$?</span>
+                </div>
+
+                 <!-- Q22 -->
+                <div onclick="showAnswer('Is &quot;He is tall&quot; a proposition?', 'No (Pronoun makes it ambiguous)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">22.</span>
+                    <span class="text-white">Is "He is tall" a proposition?</span>
+                </div>
+
+                 <!-- Q23 -->
+                <div onclick="showAnswer('T → T evaluates to?', 'True')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">23.</span>
+                    <span class="text-white">$T \to T$ evaluates to?</span>
+                </div>
+
+                 <!-- Q24 -->
+                <div onclick="showAnswer('F → F evaluates to?', 'True')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">24.</span>
+                    <span class="text-white">$F \to F$ evaluates to?</span>
+                </div>
+
+                 <!-- Q25 -->
+                <div onclick="showAnswer('Symbol for Disjunction?', '∨')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">25.</span>
+                    <span class="text-white">Symbol for Disjunction?</span>
+                </div>
+
+                 <!-- Q26 -->
+                <div onclick="showAnswer('Symbol for Conjunction?', '∧')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">26.</span>
+                    <span class="text-white">Symbol for Conjunction?</span>
+                </div>
+
+                 <!-- Q27 -->
+                <div onclick="showAnswer('Negation of &quot;All birds can fly&quot;?', 'Some birds cannot fly.')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">27.</span>
+                    <span class="text-white">Negation of "All birds can fly"?</span>
+                </div>
+
+                 <!-- Q28 -->
+                <div onclick="showAnswer('Inverse of p → q?', '¬p → ¬q')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">28.</span>
+                    <span class="text-white">Inverse of $p \to q$?</span>
+                </div>
+
+                 <!-- Q29 -->
+                <div onclick="showAnswer('Converse of p → q?', 'q → p')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">29.</span>
+                    <span class="text-white">Converse of $p \to q$?</span>
+                </div>
+
+                 <!-- Q30 -->
+                <div onclick="showAnswer('Contrapositive of p → q?', '¬q → ¬p')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600">
+                    <span class="font-bold text-indigo-300 mr-2">30.</span>
+                    <span class="text-white">Contrapositive of $p \to q$?</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: WEEKLY QUIZ 1 -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">4. Quiz 1: Basic Logic</h2>
+        <div class="bg-indigo-900/30 p-8 rounded-2xl border border-indigo-500/50">
+            <h3 class="text-xl font-bold text-white mb-4">Topics: Propositions & Connectives</h3>
+            <div class="space-y-6">
+                <!-- Q1 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">1. Which logical connective yields true ONLY when both operands are true?</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q1" value="a" class="mr-2"> Disjunction</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q1" value="b" class="mr-2"> Implication</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q1" value="c" class="mr-2"> Conjunction</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz1', 1, 'c', 'Conjunction (AND) requires both inputs to be True. Disjunction (OR) is true if at least one is true.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+                <!-- Q2 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">2. Which of these is a proposition?</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q2" value="a" class="mr-2"> Go away.</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q2" value="b" class="mr-2"> 5 is a prime number.</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q2" value="c" class="mr-2"> x + y = 2</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz1', 2, 'b', 'It is a declarative sentence that is True. \'Go away\' is a command, and \'x+y=2\' depends on variable values.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+                <!-- Q3 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">3. What is the symbol for Implication?</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q3" value="a" class="mr-2"> $\leftrightarrow$</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q3" value="b" class="mr-2"> $\to$</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q3" value="c" class="mr-2"> $\wedge$</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz1', 3, 'b', 'The arrow $\\to$ represents Implication (If...then). The double arrow is Biconditional.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+                <!-- Q4 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">4. T OR F evaluates to:</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q4" value="a" class="mr-2"> True</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q4" value="b" class="mr-2"> False</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz1', 4, 'a', 'Disjunction (OR) is True if at least one operand is True.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+                <!-- Q5 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">5. Not True is:</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q5" value="a" class="mr-2"> True</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz1-q5" value="b" class="mr-2"> False</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz1', 5, 'b', 'Negation flips the truth value. The opposite of True is False.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: WEEKLY QUIZ 2 -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">5. Quiz 2: Truth Values</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <h3 class="text-xl font-bold text-white mb-4">Topics: Truth Tables & Implications</h3>
+            <div class="space-y-6">
+                <!-- Q1 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">1. If $p$ is True and $q$ is False, what is $p \to q$?</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q1" value="a" class="mr-2"> True</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q1" value="b" class="mr-2"> False</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz2', 1, 'b', 'T implies F is the only case where implication is False. It is known as a broken promise.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+                <!-- Q2 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">2. What is the negation of False?</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q2" value="a" class="mr-2"> True</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q2" value="b" class="mr-2"> False</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz2', 2, 'a', 'NOT False is True. Negation inverts the state.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+                 <!-- Q3 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">3. If a table has 3 variables, how many rows?</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q3" value="a" class="mr-2"> 4</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q3" value="b" class="mr-2"> 6</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q3" value="c" class="mr-2"> 8</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz2', 3, 'c', 'The number of rows is calculated as $2^n$. For 3 variables, $2^3 = 8$.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+                 <!-- Q4 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">4. T XOR T evaluates to:</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q4" value="a" class="mr-2"> True</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q4" value="b" class="mr-2"> False</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz2', 4, 'b', 'XOR is false when inputs are the same. It is only true when they differ.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+                 <!-- Q5 -->
+                <div>
+                    <p class="text-slate-200 font-semibold mb-2">5. A statement that is always True is a:</p>
+                    <div class="space-y-1 ml-4">
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q5" value="a" class="mr-2"> Tautology</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q5" value="b" class="mr-2"> Contradiction</label>
+                        <label class="block text-slate-400 cursor-pointer hover:text-white"><input type="radio" name="quiz2-q5" value="c" class="mr-2"> Contingency</label>
+                    </div>
+                    <button onclick="checkQuestion('quiz2', 5, 'a', 'Tautologies are logically true in all scenarios, such as $p \\vee \\neg p$.')" class="mt-2 text-xs text-indigo-400 uppercase font-bold tracking-wider">Check Answer</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- FEEDBACK MODAL (Hidden by default) -->
+<div id="feedback-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-slate-800 p-8 rounded-2xl border border-slate-600 shadow-2xl max-w-md w-full mx-4 transform transition-all">
+        <div class="text-center mb-6" id="modal-icon">
+            <!-- Icon injected by JS -->
+        </div>
+        <h3 id="modal-title" class="text-2xl font-bold text-white text-center mb-2">
+            <!-- Title injected by JS -->
+        </h3>
+        <div id="modal-message" class="text-slate-300 text-center mb-8 leading-relaxed">
+            <!-- Message injected by JS -->
+        </div>
+        <button id="modal-button" onclick="closeModal()" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
+            Continue
+        </button>
+    </div>
+</div>
+
+</body>
+</html>
