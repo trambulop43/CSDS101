@@ -1,4 +1,5 @@
 from flask import Flask, render_template, abort, send_from_directory, url_for
+from jinja2 import TemplateNotFound # Added specific exception import
 import os
 
 app = Flask(__name__)
@@ -7,7 +8,7 @@ app = Flask(__name__)
 instructor_info = {
     "name": "Paul Domenic Trambulo",
     "title": "Instructor",
-    "email": "p.t.instructor@example.edu",
+    "email": "pptrambulo@firstasia.edu.ph",
     "focus": "Discrete Mathematics, Cryptography, Algorithms",
     "quote": "Our attitude towards life determines life's attitude towards us.",
 }
@@ -16,9 +17,9 @@ instructor_info = {
 syllabus_data = {
     "course_info": {
         "title": "Discrete Structures 1",
-        "code": "CS101", 
+        "code": "CSDS101 & EDISMATH", 
         "units": 3,
-        "prerequisite": "College Algebra",
+        "prerequisite": "ITECC04 - DATA STRUCTURES AND ALGORITHM",
         "description": "This course introduces the fundamental discrete mathematical structures used in computer science, focusing on logic, proofs, sets, functions, and graph theory. It aims to develop the mathematical foundations required for analyzing algorithms, cryptography, and logic design."
     },
     "periods": [
@@ -261,8 +262,8 @@ def weekly_lesson(week_number):
                                period=period,
                                lesson=lesson,
                                instructor=instructor_info)
-    except:
-        # Fallback to generic template if specific one doesn't exist
+    except TemplateNotFound:
+        # ONLY fallback if the file is genuinely missing
         return render_template('lesson_detail.html', 
                                course_info=syllabus_data['course_info'],
                                period=period,
