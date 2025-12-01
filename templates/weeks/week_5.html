@@ -13,79 +13,285 @@
   };
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<!-- html2pdf.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!-- External Scripts -->
+<script src="{{ url_for('static', filename='script.js') }}"></script> 
+<script src="{{ url_for('static', filename='scweek5.js') }}"></script> 
+
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
 
 <header class="bg-indigo-900/50 backdrop-blur-sm py-8 shadow-xl border-b border-indigo-700/50">
     <div class="container mx-auto px-6 max-w-6xl flex justify-between items-center">
-        <a href="/" class="text-xl font-extrabold text-indigo-400 hover:text-indigo-300 transition-colors">← Back to Syllabus</a>
+        <div class="flex items-center gap-4">
+            <a href="/" class="text-xl font-extrabold text-indigo-400 hover:text-indigo-300 transition-colors">← Syllabus</a>
+            <button id="pdf-btn" onclick="downloadPDF()" class="flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 01-2 2z"></path></svg>
+                Save as PDF
+            </button>
+        </div>
         <div class="text-right">
             <h1 class="text-2xl font-bold text-white">{{ lesson.topic }}</h1>
-            <p class="text-sm text-slate-400">Week {{ lesson.week }} | {{ period.name }}</p>
+            <p class="text-sm text-slate-400">Week {{ lesson.week }}</p>
         </div>
     </div>
 </header>
 
-<main class="container mx-auto px-6 py-10 max-w-6xl flex-grow">
+<main id="lesson-content" class="container mx-auto px-6 py-10 max-w-6xl flex-grow">
     
-    <section class="mb-12">
-        <h2 class="text-3xl font-bold text-teal-400 mb-6 border-b border-slate-700 pb-2">1. Permutations vs Combinations</h2>
-        
+    <!-- SECTION 1: PERMUTATIONS VS COMBINATIONS -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">1. The Core Distinction: Order</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <p class="text-slate-300 mb-6 text-lg">In discrete math, the most important question you must ask when selecting items is: <strong>"Does the order matter?"</strong></p>
+            
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Permutation Side -->
+                <div class="border-l-4 border-teal-500 pl-6">
+                    <h3 class="text-2xl font-bold text-teal-400 mb-2">Permutations ($P$)</h3>
+                    <p class="text-white font-bold mb-2">ORDER MATTERS</p>
+                    <p class="text-slate-400 text-sm mb-4">Arranging items in a specific sequence. Changing the position creates a new outcome.</p>
+                    <ul class="list-disc list-inside text-sm text-slate-300 space-y-2">
+                        <li><span class="text-teal-400">Example:</span> A PIN Code (1-2-3 is different from 3-2-1).</li>
+                        <li><span class="text-teal-400">Keywords:</span> Arrange, Schedule, Rank, Order, Line up.</li>
+                        <li><span class="text-teal-400">Formula:</span> $P(n,r) = \frac{n!}{(n-r)!}$</li>
+                    </ul>
+                </div>
+
+                <!-- Combination Side -->
+                <div class="border-l-4 border-purple-500 pl-6">
+                    <h3 class="text-2xl font-bold text-purple-400 mb-2">Combinations ($C$)</h3>
+                    <p class="text-white font-bold mb-2">ORDER DOES NOT MATTER</p>
+                    <p class="text-slate-400 text-sm mb-4">Selecting a group of items. Changing the position does NOT create a new outcome.</p>
+                    <ul class="list-disc list-inside text-sm text-slate-300 space-y-2">
+                        <li><span class="text-purple-400">Example:</span> Fruit Salad (Apple & Banana is same as Banana & Apple).</li>
+                        <li><span class="text-purple-400">Keywords:</span> Choose, Select, Group, Committee, Team.</li>
+                        <li><span class="text-purple-400">Formula:</span> $C(n,r) = \frac{n!}{r!(n-r)!}$</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: FORMULA DEEP DIVE -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">2. In-Depth: The Formulas Explained</h2>
         <div class="grid md:grid-cols-2 gap-8">
-            <!-- Permutations -->
-            <div class="bg-slate-800 p-6 rounded-xl border border-l-4 border-l-teal-500 border-slate-700">
-                <h3 class="text-2xl font-bold text-white mb-2">Permutation ($P$)</h3>
-                <p class="text-teal-300 font-semibold mb-4">Order MATTERS</p>
-                <p class="text-slate-300 mb-4">Arranging items in a specific sequence (e.g., 1st, 2nd, 3rd place).</p>
-                <div class="bg-slate-900 p-4 rounded">
-                    <p class="font-mono text-center text-lg text-white">$_nP_r = \frac{n!}{(n-r)!}$</p>
+            
+            <!-- Permutation Logic -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                <h3 class="text-xl font-bold text-white mb-4">Why $\frac{n!}{(n-r)!}$?</h3>
+                <p class="text-slate-300 text-sm mb-4">Imagine you have 5 racers ($n=5$) and you want to award Gold, Silver, and Bronze ($r=3$).</p>
+                
+                <div class="bg-slate-900 p-4 rounded mb-4 font-mono text-center text-sm">
+                    <div class="flex justify-center items-center gap-2 mb-2">
+                        <span class="bg-slate-700 px-2 py-1 rounded text-white">5</span> x 
+                        <span class="bg-slate-700 px-2 py-1 rounded text-white">4</span> x 
+                        <span class="bg-slate-700 px-2 py-1 rounded text-white">3</span>
+                    </div>
+                    <p class="text-slate-500">Gold x Silver x Bronze</p>
                 </div>
+                
+                <p class="text-slate-300 text-sm">Mathematically, this is taking $5!$ but stopping after 3 spots. Dividing by $(5-3)! = 2!$ effectively "cancels out" the remaining runners (4th and 5th place) who didn't win.</p>
             </div>
 
-            <!-- Combinations -->
-            <div class="bg-slate-800 p-6 rounded-xl border border-l-4 border-l-purple-500 border-slate-700">
-                <h3 class="text-2xl font-bold text-white mb-2">Combination ($C$)</h3>
-                <p class="text-purple-300 font-semibold mb-4">Order DOES NOT Matter</p>
-                <p class="text-slate-300 mb-4">Selecting a group of items (e.g., a committee of 3 people).</p>
-                <div class="bg-slate-900 p-4 rounded">
-                    <p class="font-mono text-center text-lg text-white">$_nC_r = \frac{n!}{(n-r)!r!}$</p>
+            <!-- Combination Logic -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                <h3 class="text-xl font-bold text-white mb-4">Why divide by $r!$?</h3>
+                <p class="text-slate-300 text-sm mb-4">Suppose you picked {Alice, Bob, Charlie}. In a Permutation, ABC, ACB, BAC, BCA, CAB, CBA are 6 different wins.</p>
+                <p class="text-slate-300 text-sm mb-4">But in a <strong>Combination</strong> (a Team), these are all the SAME team. </p>
+                
+                <div class="bg-slate-900 p-4 rounded mb-4 text-center">
+                    <p class="text-white font-bold mb-2">We counted too many!</p>
+                    <p class="text-slate-400 text-sm">Since order doesn't matter, we divide the permutation result by $r!$ (the number of ways to arrange the chosen winners) to remove the duplicates.</p>
+                </div>
+                <p class="font-mono text-center text-purple-400 text-lg">$C(n,r) = \frac{P(n,r)}{r!}$</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: INTERACTIVE LAB -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">3. Lab: P vs C Calculator</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-indigo-600/50 shadow-xl">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Inputs -->
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-white font-bold mb-2">Total Items (n)</h4>
+                        <input id="comb-n" type="number" value="5" class="w-full p-2 bg-slate-700 rounded border border-slate-600 text-white text-sm">
+                    </div>
+                    <div>
+                        <h4 class="text-white font-bold mb-2">Items to Select (r)</h4>
+                        <input id="comb-r" type="number" value="3" class="w-full p-2 bg-slate-700 rounded border border-slate-600 text-white text-sm">
+                    </div>
+                    <div>
+                        <h4 class="text-white font-bold mb-2">Operation Type</h4>
+                        <div class="flex gap-4 text-sm text-slate-300">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="comb-type" value="perm" checked class="mr-2 text-teal-500 focus:ring-teal-500"> 
+                                Permutation (Order Matters)
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="comb-type" value="comb" class="mr-2 text-purple-500 focus:ring-purple-500"> 
+                                Combination (Group)
+                            </label>
+                        </div>
+                    </div>
+                    <button onclick="calculateCombinatorics()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded transition-colors">Calculate</button>
+                </div>
+
+                <!-- Output -->
+                <div class="bg-slate-900 rounded-xl p-5 border border-slate-600 flex flex-col justify-center space-y-4 shadow-inner">
+                    <div class="text-center">
+                        <p class="text-xs text-slate-500 uppercase font-bold mb-1 tracking-wider">Formula Used</p>
+                        <div id="comb-formula-display" class="text-white font-mono text-sm h-8">$$ P(n,r) = \frac{n!}{(n-r)!} $$</div>
+                    </div>
+                    <div class="overflow-x-auto pb-2 text-center">
+                        <p class="text-[10px] text-slate-500 uppercase font-bold mb-1 tracking-wider">Calculation Steps</p>
+                        <div id="comb-steps" class="text-slate-300 font-mono text-sm whitespace-nowrap">...</div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[10px] text-slate-500 uppercase font-bold mb-1 tracking-wider">Result</p>
+                        <div id="comb-result" class="text-4xl text-yellow-400 font-bold font-mono break-words leading-tight">0</div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="mb-12">
-        <h2 class="text-3xl font-bold text-teal-400 mb-6 border-b border-slate-700 pb-2">2. Example Problems</h2>
-        <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 space-y-6">
-            <div>
-                <p class="text-white font-bold">Q: License plate with 3 letters?</p>
-                <p class="text-slate-400">Use Permutation (or product rule) because ABC is different from CBA.</p>
-            </div>
-            <div class="border-t border-slate-700 pt-4">
-                <p class="text-white font-bold">Q: Fruit salad with 3 fruits?</p>
-                <p class="text-slate-400">Use Combination because {Apple, Banana, Orange} is the same salad as {Orange, Apple, Banana}.</p>
+    <!-- SECTION 4: ACTIVITY (Practice Problems) -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">4. Activity: Practice Problems</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <p class="mb-6 text-slate-300">Click cards to reveal solutions. [Image of permutations and combinations]</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <div onclick="showAnswer('Top 3 winners in a 10-horse race?', '720 (Permutation)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-teal-500">
+                    <span class="font-bold text-indigo-300 mr-2">1.</span><span class="text-white">Top 3 winners in a 10-horse race?</span>
+                </div>
+
+                <div onclick="showAnswer('Selecting 3 toppings from 10 options?', '120 (Combination)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-purple-500">
+                    <span class="font-bold text-indigo-300 mr-2">2.</span><span class="text-white">Selecting 3 toppings from 10 options?</span>
+                </div>
+
+                <div onclick="showAnswer('Arranging 5 books on a shelf?', '120 (Permutation 5!)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-teal-500">
+                    <span class="font-bold text-indigo-300 mr-2">3.</span><span class="text-white">Arranging 5 books on a shelf?</span>
+                </div>
+
+                <div onclick="showAnswer('Committee of 4 from 12 students?', '495 (Combination)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-purple-500">
+                    <span class="font-bold text-indigo-300 mr-2">4.</span><span class="text-white">Committee of 4 from 12 students?</span>
+                </div>
+
+                <div onclick="showAnswer('Password with 4 distinct digits (0-9)?', '5,040 (Permutation)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-teal-500">
+                    <span class="font-bold text-indigo-300 mr-2">5.</span><span class="text-white">Password with 4 distinct digits (0-9)?</span>
+                </div>
+
+                <div onclick="showAnswer('Hand of 5 cards from 52?', '2,598,960 (Combination)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-purple-500">
+                    <span class="font-bold text-indigo-300 mr-2">6.</span><span class="text-white">Hand of 5 cards from 52?</span>
+                </div>
+
+                <div onclick="showAnswer('President, VP, Sec from 20 members?', '6,840 (Permutation)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-teal-500">
+                    <span class="font-bold text-indigo-300 mr-2">7.</span><span class="text-white">President, VP, Sec from 20 members?</span>
+                </div>
+
+                <div onclick="showAnswer('Choosing 3 Lotto numbers from 50?', '19,600 (Combination)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-purple-500">
+                    <span class="font-bold text-indigo-300 mr-2">8.</span><span class="text-white">Choosing 3 Lotto numbers from 50?</span>
+                </div>
+
+                <div onclick="showAnswer('Seating 6 people in a row?', '720 (Permutation 6!)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-teal-500">
+                    <span class="font-bold text-indigo-300 mr-2">9.</span><span class="text-white">Seating 6 people in a row?</span>
+                </div>
+
+                <div onclick="showAnswer('Value of C(5,5)?', '1 (Only 1 way to pick all)')" class="bg-slate-700 p-4 rounded-lg cursor-pointer hover:bg-slate-600 transition-colors border border-slate-600 border-l-4 border-l-purple-500">
+                    <span class="font-bold text-indigo-300 mr-2">10.</span><span class="text-white">Value of $C(5,5)$?</span>
+                </div>
+
             </div>
         </div>
     </section>
 
-    <!-- Resources -->
-    <section>
-        <h2 class="text-3xl font-bold text-teal-400 mb-6 border-b border-slate-700 pb-2">3. Lecture Materials</h2>
-        <div class="flex items-center space-x-4">
-            {% if lesson.pdf_link %}
-            <a href="{{ url_for('uploaded_file', filename=lesson.pdf_link) }}" target="_blank" class="flex items-center space-x-3 bg-slate-800 hover:bg-slate-700 p-4 rounded-xl border border-slate-600 transition-all group">
-                <div class="bg-red-500/20 p-3 rounded-lg group-hover:bg-red-500/30 transition-colors">
-                    <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+    <!-- SECTION 5: COMPREHENSIVE QUIZ (New Section) -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-teal-400 mb-8 pb-2 border-b border-slate-700">5. Comprehensive Quiz</h2>
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <p class="text-slate-300 mb-6">Part A: Quick Concept Check (30 Items)</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                <!-- 1-30 Generated Questions -->
+                <!-- P = Permutation, C = Combination -->
+                <div onclick="showAnswer('Order matters in?', 'Permutations')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">1.</span> Order matters in?</div>
+                <div onclick="showAnswer('Order does NOT matter in?', 'Combinations')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">2.</span> Order does NOT matter in?</div>
+                <div onclick="showAnswer('Formula for P(n,r)?', 'n! / (n-r)!')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">3.</span> Formula for P(n,r)?</div>
+                <div onclick="showAnswer('Formula for C(n,r)?', 'n! / (r!(n-r)!)')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">4.</span> Formula for C(n,r)?</div>
+                <div onclick="showAnswer('Arranging books?', 'Permutation')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">5.</span> Arranging books?</div>
+                <div onclick="showAnswer('Selecting a team?', 'Combination')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">6.</span> Selecting a team?</div>
+                <div onclick="showAnswer('Phone number lock?', 'Permutation')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">7.</span> Phone number lock?</div>
+                <div onclick="showAnswer('Fruit salad ingredients?', 'Combination')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">8.</span> Fruit salad ingredients?</div>
+                <div onclick="showAnswer('1st, 2nd, 3rd place?', 'Permutation')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">9.</span> 1st, 2nd, 3rd place?</div>
+                <div onclick="showAnswer('Lottery numbers?', 'Combination')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">10.</span> Lottery numbers?</div>
+                <div onclick="showAnswer('Value of 0!?', '1')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">11.</span> Value of 0!?</div>
+                <div onclick="showAnswer('P(5,5) = ?', '120 (5!)')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">12.</span> P(5,5) = ?</div>
+                <div onclick="showAnswer('C(5,5) = ?', '1')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">13.</span> C(5,5) = ?</div>
+                <div onclick="showAnswer('Which is larger: P(5,3) or C(5,3)?', 'P(5,3)')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">14.</span> Larger: P(5,3) or C(5,3)?</div>
+                <div onclick="showAnswer('Handshake problem uses?', 'Combination')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">15.</span> Handshake problem uses?</div>
+                <div onclick="showAnswer('Sitting in a row?', 'Permutation')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">16.</span> Sitting in a row?</div>
+                <div onclick="showAnswer('Sitting in a circle?', 'Circular Permutation')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">17.</span> Sitting in a circle?</div>
+                <div onclick="showAnswer('Selecting 2 distinct items from 2?', '1 way (Combination)')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">18.</span> Select 2 from 2 (Comb)?</div>
+                <div onclick="showAnswer('Arrange 2 distinct items from 2?', '2 ways (Permutation)')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">19.</span> Arrange 2 from 2 (Perm)?</div>
+                <div onclick="showAnswer('Is &quot;AB&quot; same as &quot;BA&quot; in Permutation?', 'No')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">20.</span> "AB" same as "BA" in Perm?</div>
+                <div onclick="showAnswer('Is &quot;AB&quot; same as &quot;BA&quot; in Combination?', 'Yes')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">21.</span> "AB" same as "BA" in Comb?</div>
+                <div onclick="showAnswer('C(n, r) is also written as?', 'nCr or (n r)')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">22.</span> Notation for C(n,r)?</div>
+                <div onclick="showAnswer('P(n,0) = ?', '1')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">23.</span> P(n,0) = ?</div>
+                <div onclick="showAnswer('C(n,0) = ?', '1')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">24.</span> C(n,0) = ?</div>
+                <div onclick="showAnswer('C(n,n) = ?', '1')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">25.</span> C(n,n) = ?</div>
+                <div onclick="showAnswer('Anagrams of &quot;EYE&quot;?', '3 (3!/2!)')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">26.</span> Anagrams of "EYE"?</div>
+                <div onclick="showAnswer('Keyword: &quot;Committee&quot;', 'Combination')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">27.</span> Keyword: "Committee"?</div>
+                <div onclick="showAnswer('Keyword: &quot;Code&quot;', 'Permutation')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">28.</span> Keyword: "Code"?</div>
+                <div onclick="showAnswer('Keyword: &quot;Ranking&quot;', 'Permutation')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">29.</span> Keyword: "Ranking"?</div>
+                <div onclick="showAnswer('Keyword: &quot;Subset&quot;', 'Combination')" class="bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 border border-slate-600"><span class="font-bold text-indigo-300">30.</span> Keyword: "Subset"?</div>
+            </div>
+
+            <p class="text-slate-300 mb-6 border-t border-slate-700 pt-6">Part B: Problem Solving (5 Questions)</p>
+            <div class="space-y-4">
+                <div class="bg-slate-900 p-4 rounded-lg border border-slate-600">
+                    <p class="text-white font-bold mb-2">Q1. A pizza shop has 10 toppings. You want a pizza with 3 different toppings. How many different pizzas can you order?</p>
+                    <button onclick="showAnswer('Toppings Problem', '$$ C(10,3) = \\frac{10!}{3!7!} = 120 $$')" class="text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded transition-colors shadow-lg">Show Solution</button>
                 </div>
-                <div>
-                    <p class="text-white font-semibold">Download Lecture Slides</p>
-                    <p class="text-sm text-slate-400">{{ lesson.pdf_link }}</p>
+                <div class="bg-slate-900 p-4 rounded-lg border border-slate-600">
+                    <p class="text-white font-bold mb-2">Q2. There are 8 runners in a race. Gold, Silver, and Bronze medals are awarded. How many ways can they be awarded?</p>
+                    <button onclick="showAnswer('Race Problem', '$$ P(8,3) = \\frac{8!}{5!} = 8 \\times 7 \\times 6 = 336 $$')" class="text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded transition-colors shadow-lg">Show Solution</button>
                 </div>
-            </a>
-            {% endif %}
+                <div class="bg-slate-900 p-4 rounded-lg border border-slate-600">
+                    <p class="text-white font-bold mb-2">Q3. How many ways can 5 distinct books be arranged on a shelf?</p>
+                    <button onclick="showAnswer('Books Problem', '$$ P(5,5) = 5! = 120 $$')" class="text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded transition-colors shadow-lg">Show Solution</button>
+                </div>
+                <div class="bg-slate-900 p-4 rounded-lg border border-slate-600">
+                    <p class="text-white font-bold mb-2">Q4. A club has 20 members. How many ways can they select a President and a Vice President?</p>
+                    <button onclick="showAnswer('Club Problem', '$$ P(20,2) = 20 \\times 19 = 380 $$')" class="text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded transition-colors shadow-lg">Show Solution</button>
+                </div>
+                <div class="bg-slate-900 p-4 rounded-lg border border-slate-600">
+                    <p class="text-white font-bold mb-2">Q5. You have 5 red balls and 3 blue balls (all distinct). How many ways can you choose any 2 balls?</p>
+                    <button onclick="showAnswer('Balls Problem', '$$ C(8,2) = \\frac{8!}{2!6!} = 28 $$')" class="text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded transition-colors shadow-lg">Show Solution</button>
+                </div>
+            </div>
         </div>
     </section>
 
 </main>
+
+<!-- FEEDBACK MODAL -->
+<div id="feedback-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-slate-800 p-8 rounded-2xl border border-slate-600 shadow-2xl max-w-md w-full mx-4 transform transition-all">
+        <div class="text-center mb-6" id="modal-icon"></div>
+        <h3 id="modal-title" class="text-2xl font-bold text-white text-center mb-2"></h3>
+        <div id="modal-message" class="text-slate-300 text-center mb-8 leading-relaxed"></div>
+        <button id="modal-button" onclick="closeModal()" class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-bold">
+            Continue
+        </button>
+    </div>
+</div>
+
 </body>
 </html>

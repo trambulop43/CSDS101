@@ -1,3 +1,79 @@
+// --- Permutation & Combination Calculator ---
+function calculateCombinatorics() {
+    const n = parseInt(document.getElementById('comb-n').value);
+    const r = parseInt(document.getElementById('comb-r').value);
+    const type = document.querySelector('input[name="comb-type"]:checked').value; // 'perm' or 'comb'
+    
+    const resultBox = document.getElementById('comb-result');
+    const formulaBox = document.getElementById('comb-formula-display');
+    const stepBox = document.getElementById('comb-steps');
+
+    // Validation
+    if (isNaN(n) || isNaN(r) || n < 0 || r < 0) {
+        resultBox.innerText = "Error";
+        stepBox.innerText = "Please enter non-negative integers.";
+        formulaBox.innerText = "";
+        return;
+    }
+    if (r > n) {
+        resultBox.innerText = "Error";
+        stepBox.innerText = "r cannot be greater than n (you can't pick more items than you have).";
+        formulaBox.innerText = "";
+        return;
+    }
+
+    // Factorial Helper
+    const fact = (num) => {
+        let val = 1;
+        for (let i = 2; i <= num; i++) val *= i;
+        return val;
+    };
+
+    let result = 0;
+    let formulaTeX = "";
+    let explanationText = "";
+
+    if (type === 'perm') {
+        // Permutation: nPr = n! / (n-r)!
+        result = fact(n) / fact(n - r);
+        formulaTeX = `P(${n}, ${r}) = \\frac{${n}!}{(${n}-${r})!} = \\frac{${n}!}{${n-r}!}`;
+        
+        // Build expansion string for visual step
+        let expansion = "";
+        for(let i=0; i<r; i++) {
+            expansion += (n-i) + (i < r-1 ? " \\times " : "");
+        }
+        explanationText = `$$ = ${expansion} = ${result.toLocaleString()} $$`;
+
+    } else {
+        // Combination: nCr = n! / ((n-r)! * r!)
+        result = fact(n) / (fact(n - r) * fact(r));
+        formulaTeX = `C(${n}, ${r}) = \\binom{${n}}{${r}} = \\frac{${n}!}{(${n}-${r})! \\times ${r}!}`;
+        explanationText = `$$ = \\frac{${n}!}{${n-r}! \\times ${r}!} = ${result.toLocaleString()} $$`;
+    }
+
+    // Update UI
+    formulaBox.innerHTML = `$$ ${formulaTeX} $$`;
+    stepBox.innerHTML = explanationText;
+    resultBox.innerText = result.toLocaleString();
+
+    // Re-render MathJax
+    if(window.MathJax) MathJax.typesetPromise();
+}
+
+// PDF Download
+function downloadPDF() {
+    const element = document.getElementById('lesson-content');
+    const opt = {
+        margin: [0.3, 0.3],
+        filename: 'Week_5_Lesson.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 1.5, useCORS: true },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
 // --- Modal Logic ---
 function showModal(title, message, isCorrect) {
     const modal = document.getElementById('feedback-modal');

@@ -49,24 +49,26 @@
             <!-- 1.1 Definition -->
             <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
                 <div class="flex items-start gap-4">
-                    <div class="p-3 bg-indigo-500/20 rounded-lg text-indigo-400 mt-1">
+                    <div class="p-3 bg-indigo-500/20 rounded-lg text-indigo-400 mt-1 flex-shrink-0">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                     </div>
-                    <div>
+                    <!-- Added w-full here to fix layout alignment -->
+                    <div class="w-full">
                         <h3 class="text-2xl font-bold text-white mb-2">1.1 What makes a "Set"?</h3>
                         <p class="text-slate-300 mb-4 leading-relaxed">
                             A set is not just a collection; it is a <strong>well-defined</strong> collection of <strong>distinct</strong> objects.
                         </p>
-                        <div class="grid md:grid-cols-2 gap-4 text-sm">
-                            <div class="bg-green-900/20 p-4 rounded border-l-4 border-green-500">
-                                <strong class="text-green-400">Well-Defined (Set)</strong>
-                                <p class="text-slate-400 mt-1">"The collection of past US Presidents."</p>
-                                <p class="text-xs text-slate-500 mt-1">Reason: We can objectively say if someone belongs or not.</p>
+                        <!-- Grid now respects full width -->
+                        <div class="grid md:grid-cols-2 gap-4 text-sm w-full">
+                            <div class="bg-green-900/20 p-4 rounded border-l-4 border-green-500 h-full">
+                                <strong class="text-green-400 text-base block mb-2">Well-Defined (Set)</strong>
+                                <p class="text-slate-200 italic mb-2">"The collection of past US Presidents."</p>
+                                <p class="text-xs text-slate-400">Reason: We can objectively say if someone belongs or not.</p>
                             </div>
-                            <div class="bg-red-900/20 p-4 rounded border-l-4 border-red-500">
-                                <strong class="text-red-400">Not Well-Defined (Not a Set)</strong>
-                                <p class="text-slate-400 mt-1">"The collection of good movies."</p>
-                                <p class="text-xs text-slate-500 mt-1">Reason: Subjective. "Good" is matter of opinion.</p>
+                            <div class="bg-red-900/20 p-4 rounded border-l-4 border-red-500 h-full">
+                                <strong class="text-red-400 text-base block mb-2">Not Well-Defined (Not a Set)</strong>
+                                <p class="text-slate-200 italic mb-2">"The collection of good movies."</p>
+                                <p class="text-xs text-slate-400">Reason: Subjective. "Good" is matter of opinion.</p>
                             </div>
                         </div>
                     </div>
@@ -77,23 +79,40 @@
             <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700">
                 <h3 class="text-xl font-bold text-white mb-4">1.2 Representing Sets</h3>
                 <div class="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="text-indigo-400 font-bold mb-2">1. Roster Method (Listing)</h4>
-                        <p class="text-sm text-slate-400 mb-3">Listing all elements explicitly inside curly braces.</p>
-                        <div class="bg-slate-900 p-3 rounded font-mono text-center text-white border border-slate-600">
+                    <div class="flex flex-col h-full">
+                        <h4 class="text-indigo-400 font-bold mb-2 text-lg">1. Roster Method (Listing)</h4>
+                        <div class="bg-slate-900 p-4 rounded-lg font-mono text-center text-white border border-slate-600 mb-4">
                             A = {a, e, i, o, u}
                         </div>
-                    </div>
-                    <div>
-                        <h4 class="text-indigo-400 font-bold mb-2">2. Set-Builder Notation (Rule)</h4>
-                        <p class="text-sm text-slate-400 mb-3">Describing the property $P(x)$ that elements share.</p>
-                        <div class="bg-slate-900 p-3 rounded font-mono text-center text-white border border-slate-600">
-                            A = {x | x is a vowel}
+                        <div class="bg-slate-700/30 p-4 rounded-lg border border-slate-600 flex-grow">
+                            <p class="text-sm text-slate-300 mb-2 font-bold">Why use this?</p>
+                            <p class="text-xs text-slate-400 mb-3">Best for small, finite sets where you can list every element. It provides an explicit view of the data.</p>
+                            <p class="text-sm text-slate-300 mb-2 font-bold">Details:</p>
+                            <ul class="list-disc list-inside text-xs text-slate-400 space-y-1">
+                                <li>Elements are separated by commas.</li>
+                                <li><strong>Ellipses (...)</strong> are used for patterns (e.g., $\{1, 2, 3, ...\}$).</li>
+                                <li>Order doesn't matter: $\{1, 2\} = \{2, 1\}$.</li>
+                            </ul>
                         </div>
                     </div>
-                </div>
-                <div class="mt-4 p-3 bg-slate-700/30 rounded border border-slate-600 text-xs text-center text-slate-400">
-                    <strong>Note:</strong> Order does not matter $\{1,2\} = \{2,1\}$ and duplicates are ignored $\{1,1,2\} = \{1,2\}$.
+                    
+                    <div class="flex flex-col h-full">
+                        <h4 class="text-indigo-400 font-bold mb-2 text-lg">2. Set-Builder Notation (Rule)</h4>
+                        <div class="bg-slate-900 p-4 rounded-lg font-mono text-center text-white border border-slate-600 mb-4">
+                            A = {x | x is a vowel}
+                        </div>
+                        <div class="bg-slate-700/30 p-4 rounded-lg border border-slate-600 flex-grow">
+                            <p class="text-sm text-slate-300 mb-2 font-bold">Why use this?</p>
+                            <p class="text-xs text-slate-400 mb-3">Essential for infinite sets (like Real numbers) or large sets where listing elements is impossible.</p>
+                            <p class="text-sm text-slate-300 mb-2 font-bold">How to read it:</p>
+                            <div class="text-xs text-slate-400 space-y-2">
+                                <p><span class="text-teal-400 font-bold">{ ... }</span> : "The set of..."</p>
+                                <p><span class="text-teal-400 font-bold">x</span> : "...all elements x..."</p>
+                                <p><span class="text-teal-400 font-bold">|</span> or <span class="text-teal-400 font-bold">:</span> : "...such that..."</p>
+                                <p><span class="text-teal-400 font-bold">P(x)</span> : "...x meets this condition."</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -257,7 +276,7 @@
                 <!-- 4. De Morgan's -->
                 <div class="bg-slate-900/50 border border-slate-600 rounded-xl p-6 border-l-4 border-l-indigo-500 hover:border-indigo-400 transition-colors">
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold text-white">4. De Morgan's Laws </h3>
+                        <h3 class="text-xl font-bold text-white">4. De Morgan's Laws</h3>
                         <span class="text-xs bg-indigo-900 text-indigo-300 px-2 py-1 rounded border border-indigo-500">Crucial</span>
                     </div>
                     <div class="grid md:grid-cols-2 gap-6 mb-4">
